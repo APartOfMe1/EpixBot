@@ -1,0 +1,404 @@
+{
+    "cards": [
+        {
+            "type": "Green",
+            "value": "0"
+        },
+        {
+            "type": "Green",
+            "value": "1"
+        },
+        {
+            "type": "Green",
+            "value": "1"
+        },
+        {
+            "type": "Green",
+            "value": "2"
+        },
+        {
+            "type": "Green",
+            "value": "2"
+        },
+        {
+            "type": "Green",
+            "value": "3"
+        },
+        {
+            "type": "Green",
+            "value": "3"
+        },
+        {
+            "type": "Green",
+            "value": "4"
+        },
+        {
+            "type": "Green",
+            "value": "4"
+        },
+        {
+            "type": "Green",
+            "value": "5"
+        },
+        {
+            "type": "Green",
+            "value": "5"
+        },
+        {
+            "type": "Green",
+            "value": "6"
+        },
+        {
+            "type": "Green",
+            "value": "6"
+        },
+        {
+            "type": "Green",
+            "value": "7"
+        },
+        {
+            "type": "Green",
+            "value": "7"
+        },
+        {
+            "type": "Green",
+            "value": "8"
+        },
+        {
+            "type": "Green",
+            "value": "8"
+        },
+        {
+            "type": "Green",
+            "value": "9"
+        },
+        {
+            "type": "Green",
+            "value": "9"
+        },
+        {
+            "type": "Green",
+            "value": "Draw2"
+        },
+        {
+            "type": "Green",
+            "value": "Draw2"
+        },
+        {
+            "type": "Green",
+            "value": "Skip"
+        },
+        {
+            "type": "Green",
+            "value": "Skip"
+        },
+        {
+            "type": "Blue",
+            "value": "0"
+        },
+        {
+            "type": "Blue",
+            "value": "1"
+        },
+        {
+            "type": "Blue",
+            "value": "1"
+        },
+        {
+            "type": "Blue",
+            "value": "2"
+        },
+        {
+            "type": "Blue",
+            "value": "2"
+        },
+        {
+            "type": "Blue",
+            "value": "3"
+        },
+        {
+            "type": "Blue",
+            "value": "3"
+        },
+        {
+            "type": "Blue",
+            "value": "4"
+        },
+        {
+            "type": "Blue",
+            "value": "4"
+        },
+        {
+            "type": "Blue",
+            "value": "5"
+        },
+        {
+            "type": "Blue",
+            "value": "5"
+        },
+        {
+            "type": "Blue",
+            "value": "6"
+        },
+        {
+            "type": "Blue",
+            "value": "6"
+        },
+        {
+            "type": "Blue",
+            "value": "7"
+        },
+        {
+            "type": "Blue",
+            "value": "7"
+        },
+        {
+            "type": "Blue",
+            "value": "8"
+        },
+        {
+            "type": "Blue",
+            "value": "8"
+        },
+        {
+            "type": "Blue",
+            "value": "9"
+        },
+        {
+            "type": "Blue",
+            "value": "9"
+        },
+        {
+            "type": "Blue",
+            "value": "Draw2"
+        },
+        {
+            "type": "Blue",
+            "value": "Draw2"
+        },
+        {
+            "type": "Blue",
+            "value": "Skip"
+        },
+        {
+            "type": "Blue",
+            "value": "Skip"
+        },
+        {
+            "type": "Red",
+            "value": "0"
+        },
+        {
+            "type": "Red",
+            "value": "1"
+        },
+        {
+            "type": "Red",
+            "value": "1"
+        },
+        {
+            "type": "Red",
+            "value": "2"
+        },
+        {
+            "type": "Red",
+            "value": "2"
+        },
+        {
+            "type": "Red",
+            "value": "3"
+        },
+        {
+            "type": "Red",
+            "value": "3"
+        },
+        {
+            "type": "Red",
+            "value": "4"
+        },
+        {
+            "type": "Red",
+            "value": "4"
+        },
+        {
+            "type": "Red",
+            "value": "5"
+        },
+        {
+            "type": "Red",
+            "value": "5"
+        },
+        {
+            "type": "Red",
+            "value": "6"
+        },
+        {
+            "type": "Red",
+            "value": "6"
+        },
+        {
+            "type": "Red",
+            "value": "7"
+        },
+        {
+            "type": "Red",
+            "value": "7"
+        },
+        {
+            "type": "Red",
+            "value": "8"
+        },
+        {
+            "type": "Red",
+            "value": "8"
+        },
+        {
+            "type": "Red",
+            "value": "9"
+        },
+        {
+            "type": "Red",
+            "value": "9"
+        },
+        {
+            "type": "Red",
+            "value": "Draw2"
+        },
+        {
+            "type": "Red",
+            "value": "Draw2"
+        },
+        {
+            "type": "Red",
+            "value": "Skip"
+        },
+        {
+            "type": "Red",
+            "value": "Skip"
+        },
+        {
+            "type": "Yellow",
+            "value": "0"
+        },
+        {
+            "type": "Yellow",
+            "value": "1"
+        },
+        {
+            "type": "Yellow",
+            "value": "1"
+        },
+        {
+            "type": "Yellow",
+            "value": "2"
+        },
+        {
+            "type": "Yellow",
+            "value": "2"
+        },
+        {
+            "type": "Yellow",
+            "value": "3"
+        },
+        {
+            "type": "Yellow",
+            "value": "3"
+        },
+        {
+            "type": "Yellow",
+            "value": "4"
+        },
+        {
+            "type": "Yellow",
+            "value": "4"
+        },
+        {
+            "type": "Yellow",
+            "value": "5"
+        },
+        {
+            "type": "Yellow",
+            "value": "5"
+        },
+        {
+            "type": "Yellow",
+            "value": "6"
+        },
+        {
+            "type": "Yellow",
+            "value": "6"
+        },
+        {
+            "type": "Yellow",
+            "value": "7"
+        },
+        {
+            "type": "Yellow",
+            "value": "7"
+        },
+        {
+            "type": "Yellow",
+            "value": "8"
+        },
+        {
+            "type": "Yellow",
+            "value": "8"
+        },
+        {
+            "type": "Yellow",
+            "value": "9"
+        },
+        {
+            "type": "Yellow",
+            "value": "9"
+        },
+        {
+            "type": "Yellow",
+            "value": "Draw2"
+        },
+        {
+            "type": "Yellow",
+            "value": "Draw2"
+        },
+        {
+            "type": "Yellow",
+            "value": "Skip"
+        },
+        {
+            "type": "Yellow",
+            "value": "Skip"
+        },
+        {
+            "type": "Wild",
+            "value": "Normal"
+        },
+        {
+            "type": "Wild",
+            "value": "Normal"
+        },
+        {
+            "type": "Wild",
+            "value": "Normal"
+        },
+        {
+            "type": "Wild",
+            "value": "Normal"
+        },
+        {
+            "type": "Wild",
+            "value": "Draw4"
+        },
+        {
+            "type": "Wild",
+            "value": "Draw4"
+        },
+        {
+            "type": "Wild",
+            "value": "Draw4"
+        },
+        {
+            "type": "Wild",
+            "value": "Draw4"
+        }
+    ]
+}
