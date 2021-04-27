@@ -103,11 +103,14 @@ dist
 # TernJS port file
 .tern-port
 
-# Config and sensitive data files
-config/config.json
-data/
+# Sensitive data files
+config/*
+data/*
 handlers/Backup/Backups
 handlers/Main/Error-Logs
 
 # Useless downloads
 *.mid
+
+# Keep specified folders
+!*.gitkeep/
