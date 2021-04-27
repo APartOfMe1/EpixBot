@@ -1,6 +1,0 @@
-Bup
-Startup
-
-(In bot builder):
-Edit config generation
-Edit requirements.json

@@ -107,10 +107,13 @@ dist
 config/*
 data/*
 handlers/Backup/Backups/*
-handlers/Main/Error-Logs
+handlers/Main/Error-Logs/*
 
 # Useless downloads
 *.mid
 
 # Keep specified folders
 !*.gitkeep
+
+# All my homies hate .lnk
+*.lnk
