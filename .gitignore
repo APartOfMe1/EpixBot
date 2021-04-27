@@ -113,4 +113,4 @@ handlers/Main/Error-Logs
 *.mid
 
 # Keep specified folders
-!*.gitkeep/
+!*.gitkeep
