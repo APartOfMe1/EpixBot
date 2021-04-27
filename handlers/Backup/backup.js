@@ -3,7 +3,6 @@ const fs = require("fs");
 
 module.exports = {
     createBackup(opts) {
-        console.log(opts)
         return new Promise(function (resolve, reject) {
             const d = new Date();
 
