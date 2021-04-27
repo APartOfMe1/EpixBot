@@ -106,7 +106,7 @@ dist
 # Sensitive data files
 config/*
 data/*
-handlers/Backup/Backups
+handlers/Backup/Backups/*
 handlers/Main/Error-Logs
 
 # Useless downloads
