@@ -3,6 +3,7 @@ const fs = require("fs");
 
 module.exports = {
     createBackup(opts) {
+        console.log(opts)
         return new Promise(function (resolve, reject) {
             const d = new Date();
 
@@ -16,8 +17,8 @@ module.exports = {
 
                     break;
 
-                case "minimal": //Filter out the gifs since they take up a good amount of storage
-                    opts = (path, stat) => !path.includes("node_modules") && !/\.zip$/.test(path) && !/\.gif$/.test(path);
+                case "minimal": //Filter out the gifs and .git folders since they take up a good amount of storage
+                    opts = (path, stat) => !path.includes("node_modules") && !path.includes(".git") && !/\.zip$/.test(path) && !/\.gif$/.test(path);
 
                     break;
 
@@ -26,13 +27,13 @@ module.exports = {
 
                     opts = (path, stat) => !path.includes("node_modules") && !/\.zip$/.test(path);
 
-                case "normal": //Filter out the node_modules folder because we don't need it
-                    opts = (path, stat) => !path.includes("node_modules") && !/\.zip$/.test(path);
+                case "normal": //Filter out the node_modules and .git folders because we don't need them
+                    opts = (path, stat) => !path.includes("node_modules") && !path.includes(".git") && !/\.zip$/.test(path);
 
                     break;
 
-                default: //Filter out the node_modules folder because we don't need it
-                    opts = (path, stat) => !path.includes("node_modules") && !/\.zip$/.test(path);
+                default: //Filter out the node_modules and .git folders because we don't need them
+                    opts = (path, stat) => !path.includes("node_modules") && !path.includes(".git") && !/\.zip$/.test(path);
 
                     break;
             };
