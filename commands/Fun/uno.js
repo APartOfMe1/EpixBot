@@ -3,9 +3,7 @@ const Deck = require('card-deck');
 const cardList = require('../../assets/cards/uno/cards.json');
 const config = require("../../config/config.json");
 const emojis = require("../../assets/emojis/emojis.json");
-var deck = new Deck(cardList.cards);
-var playing = [];
-var players = {};
+const unoManager = require("../../handlers/Uno/uno.js");
 
 module.exports = {
     name: 'uno',
@@ -13,6 +11,39 @@ module.exports = {
     category: 'Fun',
     usage: '`{prefix}uno`',
     async execute(msg, args) {
+        unoManager.addToGame(msg.author.id, msg.guild.id).then(res => {
+            switch (res) {
+                case "firstPlayer":
+                    msg.channel.send(`Starting a game of uno! The game needs at least three players to start, and has a max of ten players. Other players can join by typing \`${config.prefix}uno\`. The game will start in one minute`);
+
+                    break;
+
+                case "addedToExisting":
+                    msg.channel.send(`${msg.author} you joined the game!`);
+
+                    break;
+            };
+        }).catch(res => {
+            switch (res) {
+                case "alreadyInGame":
+                    msg.channel.send(`${msg.author} you're already in the game!`);
+
+                    break;
+
+                case "gameAtMaxCapacity":
+                    msg.channel.send(`${msg.author} the game is already at max capacity!`);
+
+                    break;
+
+                case "gameInProgress":
+                    msg.channel.send(`${msg.author} the game is already in progress!`);
+
+                    break;
+            };
+
+            return;
+        });
+
         //This is genuinely the worst code I've written in a LONG time. I'm sorry for anyone who reads this
         if (!playing.find(i => i.guild.id === msg.guild.id)) { //Check if there's already a game going on in the guild
             playing.push({
@@ -115,9 +146,9 @@ module.exports = {
                 embed: playEmb
             });
 
-            game.react("728436977426497556"); //React to the message with an uno emoji
+            game.react(emojis.uno); //React to the message with an uno emoji
 
-            const reactionFilter = (reaction, user) => reaction.emoji.id === "728436977426497556" && players.find(i => i.id === user.id);
+            const reactionFilter = (reaction, user) => reaction.emoji.id === emojis.uno && players.find(i => i.id === user.id);
 
             const reactCollector = game.createReactionCollector(reactionFilter, { //Set up a reaction collector with the filter
                 time: 3600000
