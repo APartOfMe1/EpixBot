@@ -85,7 +85,7 @@ module.exports = {
                 };
 
                 if (info.text.length > 2000) { //Make sure we don't try to send a message that's over the character limit
-                    client.channels.cache.get(phoneGroup[serverNum].channel).send(info.text.substring(0, 1900) + "...");
+                    client.channels.cache.get(phoneGroup[serverNum].channel).send(info.text.substring(0, 1950) + "...");
                 } else {
                     client.channels.cache.get(phoneGroup[serverNum].channel).send(info.text);
                 };
