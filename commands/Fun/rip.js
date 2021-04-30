@@ -10,8 +10,9 @@ module.exports = {
     examples: '`{prefix}rip the code` or `{prefix}rip @A part of me#0412`',
     async execute(msg, args) {
         //Ngl I don't remember what half of this does.
-        //I'm writing the comments over a year after the original code because I was braindead when I first wrote this
+        //I'm writing the comments like 2 years after the original code because I was braindead when I first wrote this
         //Just google it ig lmao
+        
         const canvas = Canvas.createCanvas(252, 297); //Create a blank canvas
 
         const img = canvas.getContext('2d'); //Probably tells it that it's 2d lol
@@ -44,18 +45,15 @@ module.exports = {
             var attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'rip.png'); //Set the new image as an attachment
 
             if (text.length > 25) { //If the text is too long, send a warning before sending the image
-
                 const final = await msg.channel.send('Warning! All text should be no longer than about 5 words or around 25 characters. Any more than that and your text might start to overlap or shrink. \n\nCreating Image...');
 
                 setTimeout(function () {
                     final.delete();
+
                     return msg.channel.send(attachment);
-                }, 5200);
-
+                }, 6000);
             } else {
-
                 return msg.channel.send(attachment); //Send the image if the message isn't too long
-
             };
         } else { //If there was a mention
             const getavatar = await user.displayAvatarURL({ //Get the avatar of the mentioned user
