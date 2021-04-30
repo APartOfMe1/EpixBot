@@ -1,6 +1,4 @@
 const Discord = require('discord.js');
-const Deck = require('card-deck');
-const cardList = require('../../assets/cards/uno/cards.json');
 const config = require("../../config/config.json");
 const emojis = require("../../assets/emojis/emojis.json");
 const unoManager = require("../../handlers/Uno/uno.js");
@@ -11,11 +9,128 @@ module.exports = {
     category: 'Fun',
     usage: '`{prefix}uno`',
     async execute(msg, args) {
-        unoManager.addToGame(msg.author.id, msg.guild.id).then(res => {
+        unoManager.addToGame(msg.author.id, msg.guild.id).then(async res => {
             switch (res) {
                 case "firstPlayer":
                     msg.channel.send(`Starting a game of uno! The game needs at least three players to start, and has a max of ten players. Other players can join by typing \`${config.prefix}uno\`. The game will start in one minute`);
 
+                    setTimeout(async () => {
+                        unoManager.initGame(msg.guild.id).then(async res => {
+                            res.players.forEach(player => {
+                                if (player.player !== res.players[res.turn].player) { //Only send the embed to the users that aren't going first in order to avoid sending the first user multiple messages
+                                    const playerEmb = new Discord.MessageEmbed()
+                                        .setColor(config.embedColor)
+                                        .setTitle("The Game Has Started")
+                                        .addField("Your Hand", player.hand.map(i => `${i.type} ${i.value}`).sort().join("\n"), true);
+
+                                    client.users.cache.get(player.player).send({
+                                        embed: playerEmb
+                                    });
+                                };
+                            });
+
+                            var playerInfo = res.players.map(player => { //Get user/card info for each player
+                                return `${getMember(player.player)} | ${player.hand.length}`;
+                            }).join("\n");
+
+                            const playEmb = new Discord.MessageEmbed()
+                                .setTitle("Uno")
+                                .setColor(config.embedColor)
+                                .setDescription(`Click ${emojis.uno} to call uno on someone! If you're about to play your second to last card, or already have one card, you can click ${emojis.uno} to declare uno`)
+                                .addField("Game", res.plays.slice(Math.max(res.plays.length - 3, 0)), true)
+                                .addField("Player | Remaining cards", playerInfo, true)
+                                .addField("Current Player", getMember(res.players[res.turn].player));
+
+                            const gameMsg = await msg.channel.send({ //Send the initial message that will show the current game
+                                embed: playEmb
+                            });
+
+                            gameMsg.react(emojis.uno); //React to the message with an uno emoji
+
+                            const reactionFilter = (reaction, user) => reaction.emoji.id === emojis.uno && res.players.find(i => i.player === user.id);
+
+                            const reactCollector = game.createReactionCollector(reactionFilter, { //Set up a reaction collector with the filter
+                                time: 3600000 //Set time to one hour
+                            });
+
+                            reactCollector.on('collect', (reaction, user) => {
+                                const unoList = [];
+                                if (!unoManager.checkCanUno(user.id, msg.guild.id)) { //Check if the user is able to call uno
+                                    return;
+                                };
+
+                                reaction.users.remove(user.id); //Remove the reaction
+
+                                if (res.players.find(p => p.player === user.id && p.hand.length <= 2 && p.hand.find(card => res.currentCard.type === card.type || res.currentCard.value === card.value || card.type === "Wild"))) { //Check if the user is about to play their 2nd to last card or only has one
+                                    if (!unoList.includes(user.id)) { //Add the user to the list
+                                        unoList.push(user.id);
+                                    };
+
+                                    client.users.cache.get(user.id).send("You called uno!");
+
+                                    plays.push(`**${getMember(user.id)}** has uno!`); //Add the action to the array
+                                } else {
+                                    var uno = false;
+
+                                    players.forEach(player => {
+                                        if (player.hand[0].length === 1 && !unoList.includes(player.id)) { //Check if any user has only one card and hasn't declared uno already
+                                            uno = true;
+
+                                            for (let index = 0; index < 2; index++) { //Add two cards to the users hand. This is done one at a time to avoid returning the cards as an array
+                                                player.hand[0].push(deck.draw(1));
+                                            };
+
+                                            client.users.cache.get(player.id).send(`**${msg.guild.members.cache.get(falseUno.id).displayName}** called uno on you and made you draw 2 cards`);
+
+                                            plays.push(`**${msg.guild.members.cache.get(falseUno.id).displayName}** called uno on **${player.name}**`); //Add the action to the array
+                                        };
+                                    });
+
+                                    if (!uno) { //If no one has one card left
+                                        var falseUno = players.find(p => p.id === user.id); //Find the user that reacted
+
+                                        for (let index = 0; index < 2; index++) { //Add two cards to the users hand. This is done one at a time to avoid returning the cards as an array
+                                            falseUno.hand[0].push(deck.draw(1));
+                                        };
+
+                                        client.users.cache.get(falseUno.id).send("You called uno, but no one had it so you drew 2 cards"); //Send the user a dm
+
+                                        plays.push(`**${msg.guild.members.cache.get(falseUno.id).displayName}** called uno, but no one had it!`); //Add the action to the array
+                                    };
+                                };
+
+                                var playerInfo = players.map(player => { //Get player info
+                                    return `${player.name} | ${player.hand[0].length}`;
+                                }).join("\n");
+
+                                var playEmb = new Discord.MessageEmbed()
+                                    .setTitle("Uno")
+                                    .setColor(config.embedColor)
+                                    .setDescription(`Click ${emojis.uno} to call uno on someone! If you're about to play your second to last card, or already have one card, you can click ${emojis.uno} to declare uno`)
+                                    .addField("Game", plays.slice(Math.max(plays.length - 3, 0)), true)
+                                    .addField("Player | Remaining cards", playerInfo, true)
+                                    .addField("Current Player", players[turn].name);
+
+                                game.edit({ //Update the game message
+                                    embed: playEmb
+                                });
+                            });
+                        }).catch(res => {
+                            switch (res) {
+                                case "notEnoughPlayers":
+                                    msg.channel.send("The game needs at least three people to start!");
+
+                                    break;
+
+                                case "invalidGameId":
+                                    msg.channel.send("There was an issue finding your game, so it wasn't started");
+
+                                    break;
+                            };
+
+                            return;
+                        });
+                    }, 2500);
                     break;
 
                 case "addedToExisting":
@@ -43,6 +158,12 @@ module.exports = {
 
             return;
         });
+
+        return;
+
+        function getMember(id) {
+            return msg.guild.members.cache.get(id);
+        };
 
         //This is genuinely the worst code I've written in a LONG time. I'm sorry for anyone who reads this
         if (!playing.find(i => i.guild.id === msg.guild.id)) { //Check if there's already a game going on in the guild

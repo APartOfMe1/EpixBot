@@ -1,10 +1,6 @@
-const Discord = require('discord.js');
 const Deck = require('card-deck');
 const cardList = require('../../assets/cards/uno/cards.json');
-const config = require("../../config/config.json");
 const emojis = require("../../assets/emojis/emojis.json");
-const unoManager = require("../../handlers/Uno/uno.js");
-const deck = new Deck(cardList.cards);
 const EventEmitter = require('events');
 const emitter = new EventEmitter();
 const games = {};
@@ -18,10 +14,18 @@ module.exports = {
 
             games[gameId].players = [];
 
+            games[gameId].deck = new Deck(cardList.cards);
+
             games[gameId].players.push({ //Add the user to the list of players
                 player: player,
                 hand: []
             });
+
+            setTimeout(() => { //Delete the game if it hasn't started after an hour
+                if (games[gameId] && games[gameId].isPlaying === false) {
+                    return delete games[gameId];
+                };
+            }, 3600000);
 
             return Promise.resolve("firstPlayer");
         } else { //If there's a game in progress
@@ -38,7 +42,65 @@ module.exports = {
 
             return Promise.resolve("addedToExisting");
         };
+    },
+
+    initGame(gameId) {
+        const curGame = games[gameId];
+
+        if (!curGame) {
+            return Promise.reject("invalidGameId");
+        };
+
+        // if (curGame.players.length < 3) {
+        //     delete curGame;
+
+        //     return Promise.reject("notEnoughPlayers");
+        // };
+
+        curGame.isPlaying = true;
+
+        curGame.turn = 0;
+
+        curGame.plays = [];
+
+        curGame.deck.shuffle();
+
+        var currentCard = curGame.deck.draw(1); //Get the top card
+
+        while (currentCard.type === "Wild" || ["Skip", "Draw2"].includes(currentCard.value)) { //Make sure the top card isn't a special card
+            curGame.deck.addToBottom(currentCard); //Put the current card back into the deck
+
+            curGame.deck.shuffle(); //Shuffle everything back in
+
+            currentCard = curGame.deck.draw(1); //Draw a new current card
+        };
+
+        curGame.curCard = currentCard;
+
+        curGame.plays.push(`The game starts with a **${currentCard.type} ${currentCard.value}**`); //Set the starting info
+
+        curGame.players.forEach(player => { //Set up each players hand
+            drawCards(7, curGame.deck, player.hand); //Add 7 cards to the hand
+        });
+
+        return Promise.resolve(curGame);
+    },
+
+    checkCanUno(player, gameId) {
+        var canUno = false;
+
+        if (games[gameId] && games[gameId].find(i => i.player === player) && games[gameId].isPlaying === true) {
+            canUno = true;
+        };
+
+        return canUno;
     }
+};
+
+function drawCards(n, deck, arr) { //Add cards individually to avoid multiple arrays in the hand
+    for (let i = 0; i < n; i++) {
+        arr.push(deck.draw(1));
+    };
 };
 
 function checkCanPlay(player, gameId) { //Check if the player is able to join a game
