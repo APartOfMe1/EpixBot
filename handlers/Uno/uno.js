@@ -63,6 +63,8 @@ module.exports = {
 
         curGame.plays = [];
 
+        curGame.unoList = [];
+
         curGame.deck.shuffle();
 
         var currentCard = curGame.deck.draw(1); //Get the top card
@@ -77,7 +79,7 @@ module.exports = {
 
         curGame.curCard = currentCard;
 
-        curGame.plays.push(`The game starts with a **${currentCard.type} ${currentCard.value}**`); //Set the starting info
+        this.pushPlay(gameId, `The game starts with a **${currentCard.type} ${currentCard.value}**`); //Set the starting info
 
         curGame.players.forEach(player => { //Set up each players hand
             drawCards(7, curGame.deck, player.hand); //Add 7 cards to the hand
@@ -86,14 +88,57 @@ module.exports = {
         return Promise.resolve(curGame);
     },
 
-    checkCanUno(player, gameId) {
-        var canUno = false;
+    pushPlay(gameId, content) {
+        if (games[gameId] && games[gameId].plays) {
+            games[gameId].plays.push(content);
 
-        if (games[gameId] && games[gameId].find(i => i.player === player) && games[gameId].isPlaying === true) {
-            canUno = true;
+            return emitter.emit("newPlay", games[gameId].plays);
+        } else {
+            return false;
+        };
+    },
+
+    callUno(player, gameId) {
+        if (!checkCanUno(user.id, msg.guild.id)) { //Check if the user is able to call uno
+            return Promise.reject("cantCall");
         };
 
-        return canUno;
+        const curGame = games[gameId];
+
+        if (curGame.players.find(p => p.player === player && p.hand.length <= 2 && p.hand.find(card => curGame.currentCard.type === card.type || curGame.currentCard.value === card.value || card.type === "Wild"))) { //Check if the user is about to play their 2nd to last card or only has one
+            if (!curGame.unoList.includes(player)) { //Add the player to the list
+                curGame.unoList.push(player);
+            };
+
+            return Promise.resolve({
+                type: "successfullyCalled",
+                player: player
+            });
+        } else {
+            var uno = false;
+
+            for (const i of curGame.players) {
+                if (i.hand.length === 1 && !curGame.unoList.includes(i.player)) { //Check if any user has only one card and hasn't declared uno already
+                    uno = true;
+
+                    drawCards(2, curGame.deck, i.hand); //Add the cards to the players hand
+
+                    return Promise.resolve({
+                        type: "calledOnOtherPlayer",
+                        player: i
+                    });
+                };
+            };
+
+            if (!uno) { //If no one has one card left
+                drawCards(2, curGame.deck, player.hand);
+
+                return promises.resolve({
+                    type: "falseUno",
+                    player: player
+                });
+            };
+        };
     }
 };
 
@@ -101,6 +146,16 @@ function drawCards(n, deck, arr) { //Add cards individually to avoid multiple ar
     for (let i = 0; i < n; i++) {
         arr.push(deck.draw(1));
     };
+};
+
+function checkCanUno(player, gameId) {
+    var canUno = false;
+
+    if (games[gameId] && games[gameId].find(i => i.player === player) && games[gameId].isPlaying === true) {
+        canUno = true;
+    };
+
+    return canUno;
 };
 
 function checkCanPlay(player, gameId) { //Check if the player is able to join a game
@@ -118,11 +173,5 @@ function checkCanPlay(player, gameId) { //Check if the player is able to join a 
 
     return true;
 };
-
-// emitter.emit("newMsg", {
-//     text: `${msg.author.tag}: ${filter(msg.content)}`,
-//     msg: msg,
-//     hangup: hangupIntent
-// });
 
 module.exports.emitter = emitter;

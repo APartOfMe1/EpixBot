@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 const config = require("../../config/config.json");
 const emojis = require("../../assets/emojis/emojis.json");
 const unoManager = require("../../handlers/Uno/uno.js");
+const gameMsgs = {};
 
 module.exports = {
     name: 'uno',
@@ -45,6 +46,8 @@ module.exports = {
                                 embed: playEmb
                             });
 
+                            gameMsgs[msg.guild.id] = gameMsg;
+
                             gameMsg.react(emojis.uno); //React to the message with an uno emoji
 
                             const reactionFilter = (reaction, user) => reaction.emoji.id === emojis.uno && res.players.find(i => i.player === user.id);
@@ -54,50 +57,32 @@ module.exports = {
                             });
 
                             reactCollector.on('collect', (reaction, user) => {
-                                const unoList = [];
-                                if (!unoManager.checkCanUno(user.id, msg.guild.id)) { //Check if the user is able to call uno
+                                unoManager.callUno(user.id, msg.guild.id).then(res => {
+                                    reaction.users.remove(user.id); //Remove the reaction
+
+                                    switch (res.type) {
+                                        case "successfullyCalled":
+                                            unoManager.pushPlay(msg.guild.id, `**${getMember(res.player)}** has uno!`); //Add the action to the array
+
+                                            break;
+
+                                        case "calledOnOtherPlayer":
+                                            client.users.cache.get(res.player).send(`**${getMember(user.id).displayName}** called uno on you and made you draw 2 cards`);
+
+                                            unoManager.pushPlay(msg.guild.id, `**${getMember(user.id)}** called uno on **${res.player}**`); //Add the action to the array
+
+                                            break;
+
+                                        case "falseUno":
+                                            client.users.cache.get(res.player).send("You called uno, but no one had it so you drew 2 cards"); //Send the user a dm
+
+                                            unoManager.pushPlay(msg.guild.id, `**${getMember(res.player)}** called uno, but no one had it!`); //Add the action to the array
+
+                                            break;
+                                    }
+                                }).catch(res => { //Return if the user isn't allowed to call uno
                                     return;
-                                };
-
-                                reaction.users.remove(user.id); //Remove the reaction
-
-                                if (res.players.find(p => p.player === user.id && p.hand.length <= 2 && p.hand.find(card => res.currentCard.type === card.type || res.currentCard.value === card.value || card.type === "Wild"))) { //Check if the user is about to play their 2nd to last card or only has one
-                                    if (!unoList.includes(user.id)) { //Add the user to the list
-                                        unoList.push(user.id);
-                                    };
-
-                                    client.users.cache.get(user.id).send("You called uno!");
-
-                                    plays.push(`**${getMember(user.id)}** has uno!`); //Add the action to the array
-                                } else {
-                                    var uno = false;
-
-                                    players.forEach(player => {
-                                        if (player.hand[0].length === 1 && !unoList.includes(player.id)) { //Check if any user has only one card and hasn't declared uno already
-                                            uno = true;
-
-                                            for (let index = 0; index < 2; index++) { //Add two cards to the users hand. This is done one at a time to avoid returning the cards as an array
-                                                player.hand[0].push(deck.draw(1));
-                                            };
-
-                                            client.users.cache.get(player.id).send(`**${msg.guild.members.cache.get(falseUno.id).displayName}** called uno on you and made you draw 2 cards`);
-
-                                            plays.push(`**${msg.guild.members.cache.get(falseUno.id).displayName}** called uno on **${player.name}**`); //Add the action to the array
-                                        };
-                                    });
-
-                                    if (!uno) { //If no one has one card left
-                                        var falseUno = players.find(p => p.id === user.id); //Find the user that reacted
-
-                                        for (let index = 0; index < 2; index++) { //Add two cards to the users hand. This is done one at a time to avoid returning the cards as an array
-                                            falseUno.hand[0].push(deck.draw(1));
-                                        };
-
-                                        client.users.cache.get(falseUno.id).send("You called uno, but no one had it so you drew 2 cards"); //Send the user a dm
-
-                                        plays.push(`**${msg.guild.members.cache.get(falseUno.id).displayName}** called uno, but no one had it!`); //Add the action to the array
-                                    };
-                                };
+                                });
 
                                 var playerInfo = players.map(player => { //Get player info
                                     return `${player.name} | ${player.hand[0].length}`;
