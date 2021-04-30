@@ -1,9 +1,5 @@
 const config = require("../../config/config.json");
 const phoneHandler = require("../../handlers/Phone/phone.js");
-client.phone = {
-    waiting: [],
-    chatting: []
-};
 
 module.exports = {
     name: 'phone',

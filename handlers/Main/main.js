@@ -9,8 +9,12 @@ const leveling = require("./Leveling/leveling.js");
 const logging = require("./Logging/logs.js");
 const phone = require("../Phone/phone.js");
 const reminders = require("../Reminders/reminders.js");
-client.db = require("./Database/database.js");
 var allowDbUsage = true; //Prevent database read/writes if needed
+client.db = require("./Database/database.js");
+client.phone = {
+    waiting: [],
+    chatting: []
+};
 
 client.on("ready", () => { //Start the bootup process by loading available commands
     startup.addCommands("./commands");
@@ -48,6 +52,8 @@ process.on('uncaughtException', err => {
     const path = `./handlers/Main/Error-Logs/Log_${d.getMonth() + 1}-${d.getDate()}-${d.getFullYear()}_${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}.txt`; //Generate the file name
 
     fs.writeFile(path, `There was an uncaught exception error. The details can be found below.\n\n${err.stack}`, function (e) {});
+
+    console.log(err.stack);
 
     if (client.channels.cache.get(config.errorChannel)) {
         if (err.toString().length < 1900) { //Format message around Discord's 2000 character limit
