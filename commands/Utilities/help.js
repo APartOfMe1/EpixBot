@@ -10,15 +10,7 @@ module.exports = {
     examples: '`{prefix}help trivia`, `{prefix}help bal',
     async execute(msg, args) {
         if (args[0]) {
-            if (args[0].toLowerCase() === '-all') {
-                var helpMsg = generateMsg();
-
-                return msg.channel.send(helpMsg.msg, {
-                    embed: helpMsg.embed
-                });
-            };
-
-            if (args[0].toLowerCase() === '-dm') {
+            if (args[0].toLowerCase() === 'dm') {
                 var helpMsg = generateMsg();
 
                 msg.react("✅"); //React to the message to let the user know the message was successfully sent
