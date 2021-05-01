@@ -106,3 +106,6 @@
 		- Added support for the {users} and {guilds} parameters
 	- Added a check for startupNotification in /config/config.json
 	- Changed the startup notification to ping the bot owner from config/config.json
+
+- Changed the variable name in /commands/Utilities/ping.js to ping instead of mess
+
