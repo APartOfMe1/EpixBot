@@ -16,8 +16,8 @@ client.phone = {
     chatting: []
 };
 
-client.on("ready", () => { //Start the bootup process by loading available commands
-    startup.addCommands("./commands");
+client.on("ready", () => {
+    startup.addCommands("./commands"); //Start the bootup process by loading available commands
 
     setInterval(() => { //Increment the reminder counters
         if (allowDbUsage) {
@@ -43,8 +43,6 @@ client.on('unhandledRejection', e => {
 });
 
 process.on('uncaughtException', err => {
-    console.log(err);
-
     allowDbUsage = false; //Disallow potential database reads/writes to avoid possible corruption
 
     const d = new Date(); //Get the date for the error file
@@ -57,7 +55,9 @@ process.on('uncaughtException', err => {
 
     if (client.channels.cache.get(config.errorChannel)) {
         if (err.toString().length < 1900) { //Format message around Discord's 2000 character limit
-            client.channels.cache.get(config.errorChannel).send(`There was an uncaught exception error\n\`\`\`js\n${err}\`\`\``);
+            client.channels.cache.get(config.errorChannel).send(`There was an uncaught exception error. The full details can be seen in the included file\n\`\`\`js\n${err}\`\`\``, {
+                files: [path]
+            });
         } else {
             client.channels.cache.get(config.errorChannel).send("There was an uncaught exception error. The details were too large to send in a message, so they're included in the file below", {
                 files: [path]

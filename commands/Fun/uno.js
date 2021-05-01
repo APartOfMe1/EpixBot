@@ -30,29 +30,21 @@ module.exports = {
                                 };
                             });
 
-                            var playerInfo = res.players.map(player => { //Get user/card info for each player
-                                return `${getMember(player.player)} | ${player.hand.length}`;
-                            }).join("\n");
-
-                            const playEmb = new Discord.MessageEmbed()
-                                .setTitle("Uno")
-                                .setColor(config.embedColor)
-                                .setDescription(`Click ${emojis.uno} to call uno on someone! If you're about to play your second to last card, or already have one card, you can click ${emojis.uno} to declare uno`)
-                                .addField("Game", res.plays.slice(Math.max(res.plays.length - 3, 0)), true)
-                                .addField("Player | Remaining cards", playerInfo, true)
-                                .addField("Current Player", getMember(res.players[res.turn].player));
-
-                            const gameMsg = await msg.channel.send({ //Send the initial message that will show the current game
-                                embed: playEmb
-                            });
+                            var gameMsg = await msg.channel.send("Starting the game...");
 
                             gameMsgs[msg.guild.id] = gameMsg;
 
+                            gameMsg = gameMsgs[msg.guild.id]; //Redefine the variable to keep the obj updated
+
                             gameMsg.react(emojis.uno); //React to the message with an uno emoji
 
-                            const reactionFilter = (reaction, user) => reaction.emoji.id === emojis.uno && res.players.find(i => i.player === user.id);
+                            unoManager.pushPlay(msg.guild.id, `The game starts with a **${res.curCard.type} ${res.curCard.value}**`);
 
-                            const reactCollector = game.createReactionCollector(reactionFilter, { //Set up a reaction collector with the filter
+                            awaitPlay(res);
+
+                            const reactionFilter = (reaction, user) => reaction.emoji.id === emojis.uno.split(/:[^:\s]*(?:::[^:\s]*)*:/g)[1].replace(/>.*/g, "") && res.players.find(i => i.player === user.id); //The regex takes the full emoji data and extracts the id
+
+                            const reactCollector = gameMsg.createReactionCollector(reactionFilter, { //Set up a reaction collector with the filter
                                 time: 3600000 //Set time to one hour
                             });
 
@@ -82,22 +74,6 @@ module.exports = {
                                     }
                                 }).catch(res => { //Return if the user isn't allowed to call uno
                                     return;
-                                });
-
-                                var playerInfo = players.map(player => { //Get player info
-                                    return `${player.name} | ${player.hand[0].length}`;
-                                }).join("\n");
-
-                                var playEmb = new Discord.MessageEmbed()
-                                    .setTitle("Uno")
-                                    .setColor(config.embedColor)
-                                    .setDescription(`Click ${emojis.uno} to call uno on someone! If you're about to play your second to last card, or already have one card, you can click ${emojis.uno} to declare uno`)
-                                    .addField("Game", plays.slice(Math.max(plays.length - 3, 0)), true)
-                                    .addField("Player | Remaining cards", playerInfo, true)
-                                    .addField("Current Player", players[turn].name);
-
-                                game.edit({ //Update the game message
-                                    embed: playEmb
                                 });
                             });
                         }).catch(res => {
@@ -144,10 +120,138 @@ module.exports = {
             return;
         });
 
+        unoManager.emitter.on("newPlay", (game, id) => {
+            if (!gameMsgs[id]) { //Make sure the message exists
+                return;
+            };
+
+            const gameMsg = gameMsgs[id];
+
+            const playerInfo = game.players.map(player => { //Get user/card info for each player
+                return `> ${getMember(player.player)} | ${player.hand.length}\n`;
+            }).join("\n");
+
+            const playEmb = new Discord.MessageEmbed()
+                .setTitle("Uno")
+                .setColor(config.embedColor)
+                .setDescription(`Click ${emojis.uno} to call uno on someone! If you're about to play your second to last card, or already have one card, you can click ${emojis.uno} to declare uno`)
+                .addField("Game", game.plays.map(p => `> ${p}\n`).slice(Math.max(game.plays.length - 3, 0)), true)
+                .addField("Player | Remaining cards", playerInfo, true)
+                .addField("Last Played Card", game.curCard.type + " " + game.curCard.value)
+                .addField("Remaining Cards in Deck", game.cardsRemaining)
+                .addField("Current Player", getMember(game.players[game.turn].player));
+
+            updateGameMsg(gameMsg, playEmb, game);
+        });
+
         return;
 
         function getMember(id) {
             return msg.guild.members.cache.get(id);
+        };
+
+        function updateGameMsg(gameMsg, content, game) {
+            if (content.constructor && content.constructor.name === "MessageEmbed") {
+                gameMsg.edit("", {
+                    embed: content
+                });
+            } else {
+                gameMsg.edit(content);
+            };
+        };
+
+        async function awaitPlay(game) {
+            var cards = [];
+
+            var recommendedPlay = "Draw a card";
+
+            game.players[game.turn].hand.forEach(card => { //Get the current player's hand
+                cards.push(`${card.type} ${card.value}`);
+
+                if (game.curCard.type === card.type || game.curCard.value === card.value || card.type === "Wild") { //Check if there's anything that can be played, and if so, recommend it
+                    recommendedPlay = `${card.type} ${card.value}`;
+                };
+            });
+
+            var playerEmb = new Discord.MessageEmbed()
+                .setColor(config.embedColor)
+                .setTitle("It's your turn!")
+                .setFooter("Respond with the card you would like to play, or \"draw\" to draw a card | To play a wild, send \"wild <type> <color>\". For example: wild draw4 green | You have 60 seconds to decide")
+                .addField("Your Hand", cards.sort().join("\n"), true)
+                .addField("Recommended Play", recommendedPlay, true)
+                .addField("Last Played Card", `${game.curCard.type} ${game.curCard.value}`);
+
+            var dm = await client.users.cache.get(game.players[game.turn].player).send({ //DM the current player with the embed
+                embed: playerEmb
+            });
+
+            const filter = m => m.content && m.content.toLowerCase() === "draw" || //Check if the user wants to draw a card
+                m.content && m.content.toLowerCase() === "draw a card" || //Check if the user wants to draw a card
+                m.content && m.content.split(" ")[1] && cards.join(",").toLowerCase().includes(m.content.toLowerCase()) && game.curCard.type.toLowerCase() === m.content.split(" ")[0].toLowerCase() && m.content.split(" ")[0].toLowerCase() !== "wild" || //Check card type
+                m.content && m.content.split(" ")[1] && cards.join(",").toLowerCase().includes(m.content.toLowerCase()) && game.curCard.value.toLowerCase() === m.content.split(" ")[1].toLowerCase() && m.content.split(" ")[0].toLowerCase() !== "wild" || //Check card value
+                m.content && m.content.split(" ")[1] && m.content.split(" ").length === 3 && cards.join(",").toLowerCase().includes(m.content.toLowerCase().split(" ").filter((e, i) => i < m.content.toLowerCase().split(" ").length - 1).join(" ")) && m.content.split(" ")[2] && m.content.split(" ")[0].toLowerCase() === "wild" && ["green", "blue", "red", "yellow"].includes(m.content.split(" ")[2].toLowerCase()); //Check wilds
+
+            dm.channel.awaitMessages(filter, {
+                max: 1,
+                time: 60000,
+                errors: ['time']
+            }).then(async collected => {
+                if (!collected.first().author.id === game.players[game.turn].player) { //Make sure people don't play out of turn
+                    return msg.channel.send("It's not your turn!");
+                };
+
+                unoManager.playCard(game.id, collected.first().content).then(res => {
+                    switch (res.type) {
+                        case "draw":
+                            unoManager.pushPlay(res.game.id, `**${getMember(res.game.players[res.game.turn].player)}** drew **${res.num}** cards and played a **${res.game.curCard.type} ${res.game.curCard.value}**`); //Add the action to the array
+
+                            collected.first().author.send(`You ended up drawing **${res.num}** cards and playing a **${res.game.curCard.type} ${res.game.curCard.value}**`); //Let the user know how many card sthey drew and what they played
+
+                            break;
+
+                        case "wild-draw4":
+                            collected.first().author.send(`You successfully changed the color to **${res.game.curCard.type}** and made **${getMember(game.players[game.turn].player)}** draw 4 cards`); //Send a message to the first user
+
+                            client.users.cache.get(game.players[game.turn].player).send(`**${getMember(res.curPlayer.player)}** made you draw 4 cards and skip your turn`); //Let the second user know what happened
+
+                            unoManager.pushPlay(res.game.id, `**${getMember(res.curPlayer.player)}** changed the color to **${res.game.curCard.type}** and made **${getMember(res.game.players[res.game.turn].player)}** draw 4 cards`); //Add the action to the array
+
+                            unoManager.incTurn(res.game.id); //Skip the players turn
+
+                            break;
+
+                        case "wild-normal":
+                            unoManager.pushPlay(res.game.id, `**${getMember(res.game.players[res.game.turn].player)}** changed the color to **${res.game.curCard.type}**`); //Add the action to the array
+
+                            collected.first().author.send(`You successfully changed the color to **${res.game.curCard.type}**`); //Send a message to the user
+
+                            break;
+                    };
+                });
+            }).catch(e => {
+                console.log(e);
+
+                const playerInfo = game.players.map(player => { //Get user/card info for each player
+                    return `> ${getMember(player.player)} | ${player.hand.length}\n`;
+                }).join("\n");
+
+                const endEmb = new Discord.MessageEmbed()
+                    .setTitle("Uno | Game Over")
+                    .setColor(config.embedColor)
+                    .setDescription(`**${getMember(game.players[game.turn].player)}** ran out of time, so the game ended`)
+                    .addField("Game", game.plays.map(p => `> ${p}\n`).slice(Math.max(game.plays.length - 3, 0)), true)
+                    .addField("Player | Remaining cards", playerInfo, true)
+                    .addField("Remaining Cards in Deck", game.cardsRemaining)
+                    .addField("Current Player", getMember(game.players[game.turn].player));
+
+                updateGameMsg(gameMsgs[game.id], endEmb, game);
+
+                unoManager.removeGame(game.id);
+
+                gameMsgs[game.id].reactions.removeAll(); //Remove all reactions from the message
+
+                return;
+            });
         };
 
         //This is genuinely the worst code I've written in a LONG time. I'm sorry for anyone who reads this
