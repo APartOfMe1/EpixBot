@@ -15,6 +15,7 @@ module.exports = {
                 totalDrawn: 0,
                 turn: 0,
                 deck: new Deck(cardList.cards),
+                curCard: null,
                 discardPile: [],
                 players: [],
                 plays: [],
@@ -81,7 +82,7 @@ module.exports = {
         curGame.discardPile.push(currentCard);
 
         curGame.players.forEach(player => { //Set up each players hand
-            drawCards(50, curGame, player.hand); //Add 7 cards to the hand
+            drawCards(2, curGame, player.hand); //Add 7 cards to the hand
         });
 
         return Promise.resolve(curGame);
@@ -104,7 +105,7 @@ module.exports = {
 
         const curGame = games[gameId];
 
-        if (curGame.players.find(p => p.player === player && p.hand.length <= 2 && p.hand.find(card => curGame.currentCard.type === card.type || curGame.currentCard.value === card.value || card.type === "Wild"))) { //Check if the user is about to play their 2nd to last card or only has one
+        if (curGame.players.find(p => p.player === player && p.hand.length <= 2 && p.hand.find(card => curGame.curCard.type === card.type || curGame.curCard.value === card.value || card.type === "Wild"))) { //Check if the user is about to play their 2nd to last card or only has one
             if (!curGame.unoList.includes(player)) { //Add the player to the list
                 curGame.unoList.push(player);
             };
@@ -148,12 +149,25 @@ module.exports = {
 
     incTurn(gameId) {
         const game = games[gameId];
-    
+
         game.turn++; //Move to the next turn
-    
+
         if (game.turn > (game.players.length - 1)) { //If the turn is greater than the number of players, loop it back to the first player
             game.turn = 0;
         };
+    },
+
+    checkWinner(game) {
+        for (const player of game.players) {
+            if (player.hand.length === 0) {
+                return Promise.resolve({
+                    game: game,
+                    winner: player
+                });
+            };
+        };
+
+        return Promise.reject();
     },
 
     playCard(gameId, card) {
@@ -170,17 +184,13 @@ module.exports = {
                 game.unoList.splice(game.unoList.indexOf(player.player), 1);
             };
 
-            while (!cardIsPlayable(justDrawn, game.curCard)) { //Draw cards until the user can play one
+            while (justDrawn.type === "Wild" || justDrawn.value === "Skip" || justDrawn.value === "Draw2" || !cardIsPlayable(justDrawn, game.curCard)) { //Draw cards until the user can play one
                 cardsDrawn++; //Add one to the card counter
 
                 justDrawn = drawCards(1, game, player.hand); //Add a card to the users hand
             };
 
-            player.hand.splice(player.hand.indexOf(justDrawn), 1); //Remove the card from the users hand
-
-            game.discardPile.push(justDrawn);
-
-            game.curCard = justDrawn; //Set the current card for the next turn
+            playCardInHand(game, `${justDrawn.type} ${justDrawn.value}`); //Send the card as a string because that's what the function expects
 
             return Promise.resolve({
                 type: "draw",
@@ -190,28 +200,17 @@ module.exports = {
         } else if (card.split(" ")[0].toLowerCase() === "wild") { //Check if the user wants to play a wild
             var color = card.split(" ")[2].slice(0, 1).toUpperCase() + card.split(" ")[2].slice(1, card.split(" ")[2].length).toLowerCase(); //Literally all this does is make the first character of the color uppercase
 
-            var findCard = game.players[game.turn].hand.find(i => i.type.toLowerCase() === card.split(" ")[0].toLowerCase() && i.value.toLowerCase() === card.split(" ")[1].toLowerCase()); //Get the card to be played
-
-            game.players[game.turn].hand.splice(game.players[game.turn].hand.indexOf(findCard), 1); //Remove the card from the users hand
-
-            game.discardPile.push(findCard);
-
-            game.curCard = { //Set the current card for the next turn
-                type: color,
-                value: "Wild"
-            };
+            playCardInHand(game, card, color);
 
             if (card.split(" ")[1].toLowerCase() === "draw4") { //Check if the card is a wild draw 4
-                var curPlayer = game.players[game.turn]; //Get the current player
-
                 this.incTurn(game.id);
 
-                drawCards(4, game, game.players[game.turn].hand);
+                drawCards(4, game, game.players[game.turn].hand); //Get the current player again instead of using the constant because we incremented the turn
 
                 return Promise.resolve({
                     type: "wild-draw4",
                     game: game,
-                    curPlayer: curPlayer
+                    curPlayer: player
                 });
             } else { //If the card isn't a wild draw 4
                 return Promise.resolve({
@@ -219,99 +218,72 @@ module.exports = {
                     game: game
                 });
             };
+        } else if (card.split(" ")[1].toLowerCase() === "skip") {
+            playCardInHand(game, card);
+
+            this.incTurn(game.id);
+
+            return Promise.resolve({
+                type: "skip",
+                game: game,
+                curPlayer: player
+            });
+        } else if (card.split(" ")[1].toLowerCase() === "draw2") {
+            playCardInHand(game, card);
+
+            this.incTurn(game.id);
+
+            drawCards(2, game, game.players[game.turn].hand);
+
+            return Promise.resolve({
+                type: "draw2",
+                game: game,
+                curPlayer: player
+            });
         } else { //If it's just a normal card to be played
-            var curPlayer = players[turn]; //Get the current player
+            playCardInHand(game, card);
 
-            var card = players[turn].hand[0].find(i => i.type.toLowerCase() === collected.first().content.split(" ")[0].toLowerCase() && i.value.toLowerCase() === collected.first().content.split(" ")[1].toLowerCase()); //Get the card to be played
-
-            players[turn].hand[0].splice(players[turn].hand[0].indexOf(card), 1); //Remove the card from the users hand
-
-            deck.addToBottom(card); //Add the card to the bottom of the deck to avoid running out of cards
-
-            currentCard = card; //Set the current card
-
-            if (card.value === "Skip") {
-                turn++; //Advance the turn
-
-                if (turn > (players.length - 1)) { //If the turn is greater than the number of players, loop it back to the first player
-                    turn = 0;
-                };
-
-                client.users.cache.get(players[turn].id).send(`You were skipped by **${curPlayer.name}**`); //Send a message to the skipped player
-
-                collected.first().author.send(`You skipped **${players[turn].name}**`); //Send a message to the first user
-
-                plays.push(`**${curPlayer.name}** skipped **${players[turn].name}**`); //Add the action to the array
-            } else if (card.value === "Draw2") {
-                turn++; //Advance the turn
-
-                if (turn > (players.length - 1)) { //If the turn is greater than the number of players, loop it back to the first player
-                    turn = 0;
-                };
-
-                for (let index = 0; index < 2; index++) { //Add two cards to the users hand. This is done one at a time to avoid returning the cards as an array
-                    players[turn].hand[0].push(deck.draw(1));
-                };
-
-                client.users.cache.get(players[turn].id).send(`**${curPlayer.name}** made you draw 2 cards`); //Send a message to the player forced to draw cards
-
-                collected.first().author.send(`You made **${players[turn].name}** draw 2 cards`); //Send a message to the first user
-
-                plays.push(`**${curPlayer.name}** made **${players[turn].name}** draw 2 cards`); //Add the action to the arrray
-            } else { //If it's a normal card
-                collected.first().author.send(`Alright! You played a **${card.type} ${card.value}**`); //Send a message to the user
-
-                plays.push(`**${players[turn].name}** played a **${card.type} ${card.value}**`); //Add the action to the array
-            };
-        };
-
-        if (players[turn].hand[0].length === 0) { //If a user has no more cards in their hand
-            var endGameInfo = players.map(player => { //Get player info
-                return `${player.name} | ${player.hand[0].length}`;
-            }).join("\n");
-
-            var gameEndEmb = new Discord.MessageEmbed()
-                .setColor(config.embedColor)
-                .setTitle("Game Over")
-                .setDescription(`**${players[turn].name}** won the game!`)
-                .addField("Game", plays.slice(Math.max(plays.length - 3, 0)), true)
-                .addField("Player | Remaining cards", endGameInfo, true);
-
-            playing.splice(playing.indexOf(playing.find(i => i.guild.id === msg.guild.id)), 1); //Remove the guild from the list of waiting/playing guilds
-
-            game.reactions.removeAll(); //Remove all reactions from the message
-
-            msg.channel.send(`**${players[turn].name}** won the game!`); //Send a message to the channel
-
-            return game.edit({
-                embed: gameEndEmb
+            return Promise.resolve({
+                type: "normal",
+                game: game
             });
         };
-
-        ++turn; //Advance the turn
-
-        if (turn > (players.length - 1)) { //If the turn is greater than the number of players, loop it back to the first player
-            turn = 0;
-        };
-
-        var playerInfo = players.map(player => { //Get player info
-            return `${player.name} | ${player.hand[0].length}`;
-        }).join("\n");
-
-        var playEmb = new Discord.MessageEmbed()
-            .setTitle("Uno")
-            .setColor(config.embedColor)
-            .setDescription(`Click ${emojis.uno} to call uno on someone! If you're about to play your second to last card, or already have one card, you can click ${emojis.uno} to declare uno`)
-            .addField("Game", plays.slice(Math.max(plays.length - 3, 0)), true)
-            .addField("Player | Remaining cards", playerInfo, true)
-            .addField("Current Player", players[turn].name);
-
-        game.edit({
-            embed: playEmb
-        });
-
-        return play(players, currentCard, turn, plays, game, unoList); //Start the next turn
     }
+};
+
+function playCardInHand(game, card, color) {
+    const player = game.players[game.turn];
+
+    const findCard = player.hand.find(c => c.type.toLowerCase() === card.split(" ")[0].toLowerCase() && c.value.toLowerCase() === card.split(" ")[1].toLowerCase()); //Get the card to be played
+
+    if (!findCard) {
+        return false;
+    };
+
+    var type = findCard.type;
+
+    var value = findCard.value;
+
+    if (findCard.type === "Wild" && color) {
+        type = color;
+
+        if (value === "Normal") {
+            value = "Wild Normal";
+        } else if (value === "Draw4") {
+            value = "Wild Draw4";
+        };
+    };
+
+    player.hand.splice(player.hand.indexOf(findCard), 1); //Remove the card from the players hand
+
+    game.discardPile.push(findCard); //Add the card to the discard pile
+
+    game.curCard = { //Set the current card for the next turn
+        type: type,
+        value: value
+    };
+
+    return;
 };
 
 function cardIsPlayable(card, curCard) {
@@ -325,8 +297,8 @@ function cardIsPlayable(card, curCard) {
 function drawCards(n, game, arr) { //Add cards individually to avoid multiple arrays in the hand
     var card;
 
-    if (game.deck._stack.length - n <= 0) {
-        while (game.deck._stack.length) {
+    if (game.deck._stack.length - n <= 0) { //Check if there's enough cards left to draw in the deck
+        while (game.deck._stack.length) { //Add the last few cards to the players hand
             card = game.deck.draw(1);
 
             game.totalDrawn++;
@@ -334,14 +306,14 @@ function drawCards(n, game, arr) { //Add cards individually to avoid multiple ar
             arr.push(card);
         };
 
-        if (game.discardPile.length) {
+        if (game.discardPile.length) { //Shuffle the cards from the discard pile back into the deck
             game.deck = new Deck(game.discardPile);
 
             game.deck.shuffle();
 
             module.exports.pushPlay(game.id, `Shuffled **${game.discardPile.length}** cards back into the draw pile`);
 
-            game.discardPile = [];
+            game.discardPile = []; //Reset the discard pile
         };
 
         game.cardsRemaining = game.deck._stack.length;
@@ -351,7 +323,7 @@ function drawCards(n, game, arr) { //Add cards individually to avoid multiple ar
 
     game.totalDrawn += n;
 
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < n; i++) { //Draw the specified amount of cards
         card = game.deck.draw(1);
 
         arr.push(card);
@@ -362,7 +334,7 @@ function drawCards(n, game, arr) { //Add cards individually to avoid multiple ar
     return card;
 };
 
-function checkCanUno(player, gameId) {
+function checkCanUno(player, gameId) { //Check if the player is able to call uno at all
     var canUno = false;
 
     if (games[gameId] && games[gameId].players.find(i => i.player === player) && games[gameId].isPlaying === true) {
