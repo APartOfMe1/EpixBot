@@ -109,3 +109,12 @@
 
 - Changed the variable name in /commands/Utilities/ping.js to ping instead of mess
 
+- Changes to /commands/Fun/uno.js
+	- Complete rewrite
+	- Added /handlers/Uno/uno.js to handle all game logic
+	- /commands/Fun/uno.js is now used only for the ui/interface aspects
+	- Added more info on the game message
+	- Fixed tons of bugs
+	- Better game logic
+	- Probably a ton more changes that I can't remember
+
