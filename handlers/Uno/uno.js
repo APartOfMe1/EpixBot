@@ -1,6 +1,5 @@
 const Deck = require('card-deck');
 const cardList = require('../../assets/cards/uno/cards.json');
-const emojis = require("../../assets/emojis/emojis.json");
 const EventEmitter = require('events');
 const emitter = new EventEmitter();
 const games = {};
@@ -57,11 +56,11 @@ module.exports = {
             return Promise.reject("invalidGameId");
         };
 
-        // if (curGame.players.length < 3) {
-        //     delete curGame;
+        if (curGame.players.length < 3) {
+            delete curGame;
 
-        //     return Promise.reject("notEnoughPlayers");
-        // };
+            return Promise.reject("notEnoughPlayers");
+        };
 
         curGame.isPlaying = true;
 
@@ -82,7 +81,7 @@ module.exports = {
         curGame.discardPile.push(currentCard);
 
         curGame.players.forEach(player => { //Set up each players hand
-            drawCards(2, curGame, player.hand); //Add 7 cards to the hand
+            drawCards(7, curGame, player.hand); //Add 7 cards to the hand
         });
 
         return Promise.resolve(curGame);
@@ -141,7 +140,7 @@ module.exports = {
         };
     },
 
-    removeGame(gameId) {
+    removeGame(gameId) { //Delete the game if it exists
         if (games[gameId]) {
             delete games[gameId];
         };
@@ -157,9 +156,9 @@ module.exports = {
         };
     },
 
-    checkWinner(game) {
+    checkWinner(game) { //Loop through each player and check their hand
         for (const player of game.players) {
-            if (player.hand.length === 0) {
+            if (player.hand.length === 0) { //Check if the player has any cards left
                 return Promise.resolve({
                     game: game,
                     winner: player
@@ -264,7 +263,7 @@ function playCardInHand(game, card, color) {
 
     var value = findCard.value;
 
-    if (findCard.type === "Wild" && color) {
+    if (findCard.type === "Wild" && color) { //Format the card value correctly with wilds
         type = color;
 
         if (value === "Normal") {

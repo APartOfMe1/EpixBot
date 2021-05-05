@@ -91,7 +91,8 @@ module.exports = {
 
                             return;
                         });
-                    }, 2500);
+                    }, 60000);
+                    
                     break;
 
                 case "addedToExisting":
@@ -183,7 +184,7 @@ module.exports = {
                 embed: playerEmb
             });
 
-            const filter = m =>
+            const filter = m => //Filter messages to only accept valid plays
                 m.content && m.content.toLowerCase() === "draw" || //Check if the user wants to draw a card
                 m.content && m.content.toLowerCase() === "draw a card" || //Check if the user wants to draw a card
                 m.content && m.content.split(" ")[1] && cards.join(",").toLowerCase().includes(m.content.toLowerCase()) && game.curCard.type.toLowerCase() === m.content.split(" ")[0].toLowerCase() && m.content.split(" ")[0].toLowerCase() !== "wild" || //Check card type
@@ -266,7 +267,8 @@ module.exports = {
                             .addField("Game", win.game.plays.map(p => `> ${p}\n`).slice(Math.max(win.game.plays.length - 3, 0)), true)
                             .addField("Player | Remaining cards", playerInfo, true)
                             .addField("Last Played Card", win.game.curCard.type + " " + win.game.curCard.value)
-                            .addField("Remaining Cards in Deck", win.game.cardsRemaining);
+                            .addField("Remaining Cards in Deck", win.game.cardsRemaining)
+                            .addField("Total Number Of Cards Played", game.totalDrawn);
 
                         gameMsg.reactions.removeAll(); //Remove all reactions from the message
 
@@ -278,8 +280,6 @@ module.exports = {
                     });
                 });
             }).catch(e => {
-                console.log(e);
-
                 const playerInfo = game.players.map(player => { //Get user/card info for each player
                     return `> ${getMember(player.player)} | ${player.hand.length}\n`;
                 }).join("\n");
@@ -290,7 +290,8 @@ module.exports = {
                     .setDescription(`**${getMember(game.players[game.turn].player)}** ran out of time, so the game ended`)
                     .addField("Game", game.plays.map(p => `> ${p}\n`).slice(Math.max(game.plays.length - 3, 0)), true)
                     .addField("Player | Remaining cards", playerInfo, true)
-                    .addField("Remaining Cards in Deck", game.cardsRemaining);
+                    .addField("Remaining Cards in Deck", game.cardsRemaining)
+                    .addField("Total Number Of Cards Played", game.totalDrawn);
 
                 updateGameMsg(gameMsgs[game.id], endEmb, game);
 
