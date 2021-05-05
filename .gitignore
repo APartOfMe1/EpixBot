@@ -104,7 +104,7 @@ dist
 .tern-port
 
 # Sensitive data files
-config/*
+config/config.json
 data/*
 handlers/Backup/Backups/*
 handlers/Main/Error-Logs/*
@@ -117,3 +117,7 @@ handlers/Main/Error-Logs/*
 
 # All my homies hate .lnk
 *.lnk
+
+# Remove media files
+assets/downloads/midi/*
+assets/downloads/mp3/*

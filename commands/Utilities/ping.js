@@ -3,8 +3,8 @@ module.exports = {
 	description: 'Ping!',
 	category: 'Utilities',
 	 async execute(msg, args) {
-		var mess = await msg.channel.send("Fetching ping...");
+		var ping = await msg.channel.send("Fetching ping...");
 		
-		mess.edit(`Pong! Heartbeat is ${client.ws.ping}ms,\nMessage Roundtrip took ${mess.createdTimestamp - msg.createdTimestamp}ms.`);
+		ping.edit(`Pong! Heartbeat is ${client.ws.ping}ms,\nMessage Roundtrip took ${ping.createdTimestamp - msg.createdTimestamp}ms.`);
 	},
 };

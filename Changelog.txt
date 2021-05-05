@@ -1,0 +1,120 @@
+- Added /commands/Administration/botbackup.js
+	- Added /handlers/Backup/ and its contents
+
+- Fixed bugs with message logging and added features
+	- Fixed crash when the logging message was over Discord's character limit
+	- Log handing is handled in it's own handler in /handlers/main/Logging/Logging.js ...Handler
+	- Added visual representations of what changed in a message edit
+	- Improved stability overall
+	- Added message filtering (apparently I didn't have it before :blobsweat:)
+
+- Added /commands/Fun/bup.js
+	- Added /assets/soundfonts/ and its contents
+	- Added /assets/downloads/midi/ and its contents
+
+- Database changes
+	- All databases are now called from client.db.<table>
+	- All commands that accessed the database have been updated to reflect the change
+	- Overall database stability improved
+
+- Updates to /handlers/Main/main.js
+	- Improved error handling
+	- Bot will disallow database read/writes after uncaughtException error until reboot
+
+- Commands will now run if a message is updated
+
+- Updates to /commands/Fun/owofy.js
+	- It now uses a different npm module (owoify-js)
+	- Fixed potential crashes if the message went above the character limit
+	- Better stability when getting the previous message content
+
+- Phone updates
+	- Waiting and chatting arrays were moved to /handlers/Main/main.js and are now accessed through client.phone
+	- Messages are now collected through the default client.on("message") emitter in /handlers/Main/main.js instead of a seperate .on function
+	- Added /handlers/Phone/phone.js for handing incoming messages
+	- Changed /commands/Fun/phone.js to reflect changes
+	- Greatly improved connection stability and reduced processor usage
+
+- /commands/Moderation/backup.js updated to have restore confirmation show time limit
+
+- /commands/Moderation/ban.js stability improved
+
+- /commands/Moderation/kick.js stability improved
+
+- /config/config.json updates
+	- Added new fields
+		- startupNotification: Pings bot owner on startup
+		- invite: Used in /commands/Utilities/invite.js to generate the dynamic message
+		- supportLink: Same as above
+	- Bot statuses
+		- Added several status messages
+		- {guild} will be replaced by the bot guild count
+		- {users} will be replaced by the bot user count
+
+
+- Added /commands/Utilities/emoji.js
+
+- Added /assets/emojis/emojis.json
+	- All commands that use custom emojis updated to reflect the change
+
+
+- Removed redundant dependencies in all files
+
+- Updates to /commands/Fun/rip.js
+	- Cleaned up a couple lines of code for consistency
+	- Added/edited comments to make code a bit more clear
+	- Changed warning message timeout from 5200ms to 6000ms
+
+- Added reminders
+	- Added /commands/Utilities/reminder.js
+	- Added /handlers/Reminders/reminders.js
+	- Changed /handlers/Main/main.js to increment reminder counts every second
+	- Added a reminder table to the database
+
+- Changed all embeds that weren't already useing the embedColor from /config/config.json to do so
+
+- Updates to /commands/Monetary/daily.js
+	- getTime function updated to allow for both singular and plural hours and minutes
+	- Removed the user parameter from the checkTime function
+	- Changed one year streak bonus to 75,000 credits
+	- Added a 25,000 credit bonus for a 100 day streak
+
+- Slightly updated wording in /commands/Monetary/slots.js
+
+- Improved stability in /commands/Monetary/trivia.js
+
+- Slightly updated wording in /commands/Music/np.js
+
+- Changes to /commands/Utilities/help.js
+	- Removed the dash from the dm parameter
+	- The help message is now sent in the channel by default instead of a dm
+	- Changed the DM success emoji to a checkmark
+	- Removed the all parameter
+
+- Updated /commands/Utilities/invite.js to dynamically create message based off the contents of invite and supportLink in /config/config.json
+
+- Updated /handlers/Main/Command-Handler/command-handler.js
+	- Updated error message when a command fails
+	- Added a check to make sure the error channel exists
+
+- Added /handlers/Main/Error-Logs/
+
+- Updated /handlers/Main/Startup/startup.js
+	- Changed wording of a couple comments
+	- Updated the status interval function
+		- Added a check for the status array in /config/config.json
+		- Added support for the {users} and {guilds} parameters
+	- Added a check for startupNotification in /config/config.json
+	- Changed the startup notification to ping the bot owner from config/config.json
+
+- Changed the variable name in /commands/Utilities/ping.js to ping instead of mess
+
+- Changes to /commands/Fun/uno.js
+	- Complete rewrite
+	- Added /handlers/Uno/uno.js to handle all game logic
+	- /commands/Fun/uno.js is now used only for the ui/interface aspects
+	- Added more info on the game message
+	- Fixed tons of bugs
+	- Better game logic
+	- Probably a ton more changes that I can't remember
+

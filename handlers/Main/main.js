@@ -9,17 +9,21 @@ const leveling = require("./Leveling/leveling.js");
 const logging = require("./Logging/logs.js");
 const phone = require("../Phone/phone.js");
 const reminders = require("../Reminders/reminders.js");
-client.db = require("./Database/database.js");
 var allowDbUsage = true; //Prevent database read/writes if needed
+client.db = require("./Database/database.js");
+client.phone = {
+    waiting: [],
+    chatting: []
+};
 
-client.on("ready", () => { //Start the bootup process by loading available commands
-    startup.addCommands("./commands");
+client.on("ready", () => {
+    startup.addCommands("./commands"); //Start the bootup process by loading available commands
 
-    if (allowDbUsage) {
-        setInterval(() => { //Increment the reminder counters
+    setInterval(() => { //Increment the reminder counters
+        if (allowDbUsage) {
             reminders.incCounters(1000);
-        }, 1000);
-    };
+        };
+    }, 1000);
 });
 
 client.on('error', e => { //Send a message to the error channel when an error occurs with the client
@@ -39,9 +43,7 @@ client.on('unhandledRejection', e => {
 });
 
 process.on('uncaughtException', err => {
-    console.log(err);
-
-    allowDbUsage = false;
+    allowDbUsage = false; //Disallow potential database reads/writes to avoid possible corruption
 
     const d = new Date(); //Get the date for the error file
 
@@ -49,9 +51,13 @@ process.on('uncaughtException', err => {
 
     fs.writeFile(path, `There was an uncaught exception error. The details can be found below.\n\n${err.stack}`, function (e) {});
 
+    console.log(err.stack);
+
     if (client.channels.cache.get(config.errorChannel)) {
         if (err.toString().length < 1900) { //Format message around Discord's 2000 character limit
-            client.channels.cache.get(config.errorChannel).send(`There was an uncaught exception error\n\`\`\`js\n${err}\`\`\``);
+            client.channels.cache.get(config.errorChannel).send(`There was an uncaught exception error. The full details can be seen in the included file\n\`\`\`js\n${err}\`\`\``, {
+                files: [path]
+            });
         } else {
             client.channels.cache.get(config.errorChannel).send("There was an uncaught exception error. The details were too large to send in a message, so they're included in the file below", {
                 files: [path]
@@ -105,29 +111,17 @@ client.on("message", msg => {
 });
 
 client.on("messageUpdate", (oldmsg, newmsg) => {
-    if (!allowDbUsage) {
-        return;
+    if (allowDbUsage) {
+        cmdhandler.handleCommand(newmsg);
+
+        return logging.edited(oldmsg, newmsg);
     };
-
-    if (newmsg.author.bot) { //Ignore messages sent by bots
-        return;
-    };
-
-    if (newmsg.guild === null) { //If sent in anything other than a guild (DMs for example), return
-        return;
-    };
-
-    if (!newmsg.guild.available) { //Check if the guild is available
-        return;
-    };
-
-    cmdhandler.handleCommand(newmsg);
-
-    return logging.edited(oldmsg, newmsg);
 });
 
 client.on("messageDelete", delmsg => {
-    return logging.deleted(delmsg);
+    if (allowDbUsage) {
+        return logging.deleted(delmsg);
+    };
 });
 
 client.on("guildMemberRemove", oldmember => {
@@ -143,7 +137,9 @@ client.on("guildMemberRemove", oldmember => {
         };
     });
 
-    return logging.memberLeft(oldmember);
+    if (allowDbUsage) {
+        return logging.memberLeft(oldmember);
+    };
 });
 
 client.on("guildMemberAdd", newmember => {
@@ -155,7 +151,9 @@ client.on("guildMemberAdd", newmember => {
         };
     });
 
-    return logging.memberJoined(newmember);
+    if (allowDbUsage) {
+        return logging.memberJoined(newmember);
+    };
 });
 
 client.on("guildCreate", guild => {

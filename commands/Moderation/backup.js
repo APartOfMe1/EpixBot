@@ -55,7 +55,7 @@ module.exports = {
 
                 var code = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1); //Generate a random four digit code
 
-                msg.channel.send(`Are you sure you want to restore the backup? This will delete **ALL** data on the server and replace it with the data in the backup. This includes messages, channels, roles, bans, server settings, emojis, etc \n\nIf you're sure you want to restore the backup, type **${code}**`);
+                msg.channel.send(`Are you sure you want to restore the backup? This will delete **ALL** data on the server and replace it with the data in the backup. This includes messages, channels, roles, bans, server settings, emojis, etc \n\nIf you're sure you want to restore the backup, type **${code}** within 45 seconds`);
 
                 const filter = m => m.author.id === msg.author.id && m.content === code; //Make sure the message comes from the author and includes the code we generated earlier
 

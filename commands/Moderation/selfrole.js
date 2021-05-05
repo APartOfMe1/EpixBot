@@ -8,7 +8,7 @@ module.exports = {
     category: 'Moderation',
     cooldown: 5000,
     async execute(msg, args) {
-        client.selfroles.ensure(msg.guild.id, {
+        client.db.selfroles.ensure(msg.guild.id, {
             selfroles: [],
             autorole: "Not set"
         });
