@@ -7,6 +7,7 @@ const emojis = require("../../assets/emojis/emojis.json");
 const config = require('../../config/config.json');
 const midiPath = "C:/Users/jorda/Desktop/Bots/EpixBot/assets/downloads/midi";
 const mp3Path = "C:/Users/jorda/Desktop/Bots/EpixBot/assets/downloads/midi/conversions";
+const ytdl = require('discord-ytdl-core');
 
 module.exports = {
     name: 'bup',
@@ -61,17 +62,56 @@ module.exports = {
                     system(`timidity ${midiPath}/${filename}.mid -Ow -o - | ffmpeg -i - -acodec libmp3lame -ab 64k ${mp3Path}/${filename}.mp3`).then(() => {
                         loadingMsg.delete();
 
-                        msg.channel.send(`Bup! For more info/help/the soundfont download, use \`${config.prefix}bup info\``, {
+                        msg.channel.send(`Bup! For more info/help/the soundfont download, use \`${config.prefix}bup info\`. To play this song in a voice channel, use \`${config.prefix}playbup\``, {
                             files: [{
                                 attachment: `${mp3Path}/${filename}.mp3`,
                                 name: `${name}.mp3`
                             }]
-                        });
+                        }).then(() => {
+                            const filter = m => m.author.id === msg.author.id && m.content.toLowerCase() === `${config.prefix}playbup`;
 
-                        setTimeout(() => { //Wait for everything to finish, then delete the files
-                            fs.unlink(`${midiPath}/${filename}.mid`, function (err) {});
-                            fs.unlink(`${mp3Path}/${filename}.mp3`, function (err) {});
-                        }, 7500);
+                            msg.channel.awaitMessages(filter, {
+                                    max: 1,
+                                    time: 30000,
+                                    errors: ['time']
+                                })
+                                .then(collected => {
+                                    msg.member.voice.channel.join().then(async connection => {
+                                        const songStream = fs.createReadStream(`${mp3Path}/${filename}.mp3`);
+
+                                        const stream = ytdl.arbitraryStream(songStream, {
+                                            filter: 'audioonly',
+                                            opusEncoded: true,
+                                            highWaterMark: 1 << 25,
+                                        });
+
+                                        const dispatcher = connection.play(stream, {
+                                            type: 'opus',
+                                            bitrate: 'auto',
+                                            fec: true,
+                                        });
+
+                                        dispatcher.on("end", () => {
+                                            fs.unlink(`${midiPath}/${filename}.mid`, function (err) {});
+
+                                            fs.unlink(`${mp3Path}/${filename}.mp3`, function (err) {});
+
+                                            return msg.channel.send("I finished playing your song!");
+                                        });
+
+                                        return msg.channel.send("Playing!");
+                                    });
+                                }).catch(err => {
+                                    console.log(err);
+
+                                    setTimeout(() => { //Wait for everything to finish, then delete the files
+                                        fs.unlink(`${midiPath}/${filename}.mid`, function (err) {});
+                                        fs.unlink(`${mp3Path}/${filename}.mp3`, function (err) {});
+                                    }, 7500);
+
+                                    return;
+                                });
+                        });
                     }).catch(err => {
                         return loadingMsg.edit("There was an error converting your file. Please try again later");
                     });

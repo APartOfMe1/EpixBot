@@ -34,8 +34,12 @@ module.exports = {
                 finalMsg.push(`Bonus! You've used daily **${client.db.credits.get(msg.author.id, "streak")}** times in a row, so you'll be able to use this command again in 15 hours instead of 24!\n`);
             };
 
+            if (Number.isInteger(client.db.credits.get(msg.author.id, "streak") / 100) && client.db.credits.get(msg.author.id, "streak") !== 0) { //Give a bonus 100 days
+                finalMsg.push(`Bonus! You've used daily for **${client.db.credits.get(msg.author.id, "streak") / 100}** days in a row! To celebrate, you get a bonus of 25,000 credits!\n`);
+            };
+
             if (Number.isInteger(client.db.credits.get(msg.author.id, "streak") / 365) && client.db.credits.get(msg.author.id, "streak") !== 0) { //Give a bonus every year
-                finalMsg.push(`Bonus! You've used daily for **${client.db.credits.get(msg.author.id, "streak") / 365}** year(s) in a row! To celebrate, you get a bonus of 50,000 credits!\n`);
+                finalMsg.push(`Bonus! You've used daily for **${client.db.credits.get(msg.author.id, "streak") / 365}** year(s) in a row! To celebrate, you get a bonus of 75,000 credits!\n`);
             };
 
             finalMsg.push(givePoints(msg.author.id));
@@ -63,7 +67,11 @@ module.exports = {
             var totalCredits = 150 + streakBonus; //Add the default 150 points to the bonus
 
             if (Number.isInteger(client.db.credits.get(id, "streak") / 365) && client.db.credits.get(id, "streak") !== 0) { //Give a bonus every year
-                totalCredits += 50000; //Add the bonus credits to their total
+                totalCredits += 75000; //Add the bonus credits to their total
+            };
+
+            if (Number.isInteger(client.db.credits.get(id, "streak") / 100) && client.db.credits.get(id, "streak") !== 0) { //Give a bonus 100 days
+                totalCredits += 25000; //Add the bonus credits to their total
             };
 
             client.db.credits.set(id, client.db.credits.get(id, "credits") + totalCredits, "credits"); //Set the new balance
@@ -73,7 +81,7 @@ module.exports = {
             return `Added **${totalCredits}** to your balance! You now have **${client.db.credits.get(id, "credits")}** credits and a **${client.db.credits.get(id, "streak")}** day streak`;
         };
 
-        function checkTime(time, user) {
+        function checkTime(time) {
             var currentDate = new Date().valueOf();
 
             if (client.db.credits.get(msg.member.id, "canspeedup")) { //Set different time values if the user is on a bonus streak
@@ -108,21 +116,33 @@ module.exports = {
 
             var hrs = (s - mins) / 60;
 
+            var pluralSec = "seconds";
+
             if (secs === 1) {
-                var plural = "second";
-            } else {
-                var plural = "seconds";
+                pluralSec = "second";
+            };
+
+            var pluralMin = "minutes";
+
+            if (mins === 1) {
+                pluralMin = "minute";
+            };
+
+            var pluralHrs = "hours";
+
+            if (hrs === 1) {
+                pluralHrs = "hour";
             };
 
             if (!hrs && !mins) {
-                return `${secs} ${plural}`
+                return `${secs} ${pluralSec}`
             };
 
             if (!hrs) {
-                return `${mins} minutes, and ${secs} ${plural}`;
+                return `${mins} ${pluralMin}, and ${secs} ${pluralSec}`;
             };
 
-            return `${hrs} hours, ${mins} minutes, and ${secs} ${plural}`;
+            return `${hrs} ${pluralHrs}, ${mins} ${pluralMin}, and ${secs} ${pluralSec}`;
         };
     },
 };
