@@ -5,8 +5,9 @@ const fs = require("fs");
 const checkDiskSpace = require('check-disk-space');
 const emojis = require("../../assets/emojis/emojis.json");
 const config = require('../../config/config.json');
-const midiPath = "C:/Users/jorda/Desktop/Bots/EpixBot/assets/downloads/midi";
-const mp3Path = "C:/Users/jorda/Desktop/Bots/EpixBot/assets/downloads/midi/conversions";
+const path = require("path");
+const midiPath = path.resolve("./assets/downloads/midi");
+const mp3Path = path.resolve("./assets/downloads/midi/conversions");
 const ytdl = require('discord-ytdl-core');
 
 module.exports = {
@@ -48,10 +49,12 @@ module.exports = {
 
         const name = attach.name.split(".mid").join("").trim();
 
-        checkDiskSpace('C:/').then((diskSpace) => {
-            //if (diskSpace.free < 26843531856) { //Make sure we always have at least 25gb of space free
-            //  return msg.channel.send("There are too many people converting files right now! Try again later");
-            //};
+        var base = (process.platform === "win32") ? path.parse(midiPath).root : "/"; //Determine the platform and drive letter if on Windows
+
+        checkDiskSpace(base).then((diskSpace) => {
+            if (diskSpace.free < 26843531856) { //Make sure we always have at least 25gb of space free
+             return msg.channel.send("There are too many people converting files right now! Try again later");
+            };
 
             msg.channel.send(`${emojis.loading} Processing... This could take a few minutes`).then((loadingMsg) => { //Send a loading message
                 var filename = genName(16); //Generate a random filename to avoid duplicate names
@@ -62,7 +65,7 @@ module.exports = {
                     system(`timidity ${midiPath}/${filename}.mid -Ow -o - | ffmpeg -i - -acodec libmp3lame -ab 64k ${mp3Path}/${filename}.mp3`).then(() => {
                         loadingMsg.delete();
 
-                        msg.channel.send(`Bup! For more info/help/the soundfont download, use \`${config.prefix}bup info\`. To play this song in a voice channel, use \`${config.prefix}playbup\``, {
+                        msg.channel.send(`Bup! For more info/help/the soundfont download, use \`${config.prefix}bup info\`. To play this song in a voice channel, use \`${config.prefix}playbup\` within 30 seconds`, {
                             files: [{
                                 attachment: `${mp3Path}/${filename}.mp3`,
                                 name: `${name}.mp3`
@@ -92,9 +95,13 @@ module.exports = {
                                         });
 
                                         dispatcher.on("end", () => {
-                                            fs.unlink(`${midiPath}/${filename}.mid`, function (err) {});
-
-                                            fs.unlink(`${mp3Path}/${filename}.mp3`, function (err) {});
+                                            try {
+                                                fs.unlink(`${midiPath}/${filename}.mid`, function (err) {});
+        
+                                                fs.unlink(`${mp3Path}/${filename}.mp3`, function (err) {});
+                                            } catch (error) {
+                                                return;
+                                            };
 
                                             return msg.channel.send("I finished playing your song!");
                                         });
@@ -102,12 +109,13 @@ module.exports = {
                                         return msg.channel.send("Playing!");
                                     });
                                 }).catch(err => {
-                                    console.log(err);
-
-                                    setTimeout(() => { //Wait for everything to finish, then delete the files
+                                    try {
                                         fs.unlink(`${midiPath}/${filename}.mid`, function (err) {});
+
                                         fs.unlink(`${mp3Path}/${filename}.mp3`, function (err) {});
-                                    }, 7500);
+                                    } catch (error) {
+                                        return;
+                                    };
 
                                     return;
                                 });
