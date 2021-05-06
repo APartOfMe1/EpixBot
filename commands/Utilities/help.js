@@ -37,8 +37,8 @@ module.exports = {
                 cmdEmb.addField("Aliases", cmd.aliases.join(", "));
             };
 
-            if (client.settings.get(msg.guild.id).prefix) {
-                var prefix = client.settings.get(msg.guild.id).prefix;
+            if (client.db.settings.get(msg.guild.id).prefix) {
+                var prefix = client.db.settings.get(msg.guild.id).prefix;
             } else {
                 var prefix = config.prefix;
             };
