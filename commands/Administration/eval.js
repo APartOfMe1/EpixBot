@@ -1,5 +1,3 @@
-const Discord = require('discord.js');
-const config = require("../../config/config.json");
 const {
     inspect
 } = require("util")
