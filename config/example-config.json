@@ -3,7 +3,7 @@
         "token": "",
         "prefix": "",
         "embedColor": "",
-        "owners": "",
+        "owners": [],
         "startupNotification": true,
         "invite": "",
         "supportLink": "",

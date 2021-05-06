@@ -46,7 +46,9 @@ module.exports = {
         }, 60000);
 
         if (client.channels.cache.get(config.errorChannel) && config.startupNotification === true) {
-            client.channels.cache.get(config.errorChannel).send(`<@${config.owners}> I rebooted!`); //Send a message to a channel on reboot
+            const ownerList = config.owners.map(u => `<@${u}>`);
+
+            client.channels.cache.get(config.errorChannel).send(`<@${ownerList}> I rebooted!`); //Send a message to a channel on reboot
         };
 
         console.log(chalk.keyword('green')(`I'm up and running!`)); //Send a message in the console on boot
