@@ -19,6 +19,9 @@ An example config file can be found in `/templates/config.json`. Before the bot 
 - embedColor
 - owners
 
+In order to use the bup command, you'll need [TiMidity++](https://sourceforge.net/projects/timidity/) and [FFmpeg](https://ffmpeg.org/). Be sure both are able to be used on the command line from anywhere (on Windows this means adding them to your PATH).
+
+To set up the soundfont with timidity, copy the Bup3.sf2 file from `/assets/soundfonts/bup` to your timidity install folder. Create a file in your timidity folder named `TIMIDITY.cfg` and set it's contents to `soundfont /path/to/timidity/Bup3.sf2` (be sure to use the absolute path). Timidity should automatically detect and use the config file.
 ## Adding commands
 
 Commands are placed in the `/commands` directory in the folder corresponding to their category. A command template file can be found in `/templates/command.js`
