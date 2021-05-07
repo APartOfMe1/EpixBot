@@ -14,6 +14,7 @@ module.exports = {
     name: 'bup',
     description: 'Bupify a midi file and convert it to mp3!',
     category: 'Fun',
+    cooldown: 10000,
     async execute(msg, args) {
         if (args[0] && args[0].toLowerCase() === "info") {
             const infoEmb = new Discord.MessageEmbed()

@@ -1,11 +1,7 @@
+const checkDiskSpace = require('check-disk-space');
+const path = require("path");
 const Player = require('../../handlers/Music/music.js');
 client.player = Player;
-const emojis = require("../../assets/emojis/emojis.json");
-const download = require('download');
-const fs = require("fs");
-const checkDiskSpace = require('check-disk-space');
-const downloadPath = "C:/Users/jorda/Desktop/Bots/EpixBot/assets/downloads/mp3";
-const ytdl = require('discord-ytdl-core');
 
 module.exports = {
     name: 'play',
@@ -40,36 +36,14 @@ module.exports = {
                 return msg.channel.send("You need to make sure that your first upload is an mp3 file!");
             };
 
-            checkDiskSpace('C:/').then((diskSpace) => {
-                //if (diskSpace.free < 26843531856) { //Make sure we always have at least 25gb of space free
-                //  return msg.channel.send("There are too many people playing files right now! Try again later");
-                //};
+            var base = (process.platform === "win32") ? path.parse(__dirname).root : "/"; //Determine the platform and drive letter if on Windows
 
-                msg.channel.send(`${emojis.loading} Processing... This could take a few minutes`).then((loadingMsg) => { //Send a loading message
-                    var filename = genName(16); //Generate a random filename to avoid duplicate names
+            checkDiskSpace(base).then((diskSpace) => {
+                if (diskSpace.free < 26843531856) { //Make sure we always have at least 25gb of space free
+                    return msg.channel.send("Too many people are playing from a file right now! Try again later");
+                };
 
-                    download(attach.url, downloadPath, {
-                        filename: `${filename}.mp3`
-                    }).then(() => {
-                        msg.member.voice.channel.join().then(async connection => {   
-                            const songStream = fs.createReadStream(downloadPath + "/" + filename + ".mp3");
-
-                            const stream = ytdl.arbitraryStream(songStream, {
-                                filter: 'audioonly',
-                                opusEncoded: true,
-                                highWaterMark: 1 << 25,
-                            });
-                    
-                            connection.play(stream, {
-                                type: 'opus',
-                                bitrate: 'auto',
-                                fec: true,
-                            });
-                    
-                            return loadingMsg.edit("Playing!");
-                        });
-                    });
-                });
+                return client.player.play(args.join(" "), msg.member.voice.channel, msg.channel, msg.author, false, attach.url);
             });
         } else {
             if (!args[0]) { //Make sure the bot is actually given a song to search for

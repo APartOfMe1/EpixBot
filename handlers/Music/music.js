@@ -3,6 +3,8 @@ const ytdl = require('discord-ytdl-core');
 const ytdlCore = require('ytdl-core');
 const ytpl = require('ytpl');
 const ytsr = require('ytsr');
+const fs = require("fs");
+const urlManager = require("./Url-Parser/url-parser.js");
 const config = require("../../config/config.json");
 const queue = {};
 
@@ -13,18 +15,6 @@ module.exports = {
         };
 
         return Promise.resolve(queue[guildId]); //Return the guild's queue
-    },
-
-    clearQueue(guildId) {
-        if (!(guildId in queue)) { //Make sure the guild has a queue
-            return Promise.reject("No songs are currently playing");
-        };
-
-        queue[guildId].songs.splice(1); //Remove every item except what's currently playing
-
-        queue[guildId].totalTimeMs = this.hmsToMs(queue[guildId].songs[0].duration); //Reset the total time
-
-        return Promise.resolve("Queue cleared");
     },
 
     skip(guildId) {
@@ -39,12 +29,12 @@ module.exports = {
         return Promise.resolve(skipped); //Return info about the skipped song
     },
 
-    playSkip(guildId, search, voiceChannel, msgChannel, user) {
+    playSkip(guildId, search, voiceChannel, msgChannel, user, file) {
         if (!(guildId in queue)) { //Make sure the guild has a queue
             return Promise.reject("No songs are currently playing");
         };
 
-        this.play(search, voiceChannel, msgChannel, user, true);
+        this.play(search, voiceChannel, msgChannel, user, true, file);
 
         return Promise.resolve("Done");
     },
@@ -56,7 +46,7 @@ module.exports = {
 
         queue[guildId].channel.dispatcher.end();
 
-        delete queue[guildId]; //Remove the guild's queue entirely
+        deleteQueue(guildId);
 
         return Promise.resolve("Stopped");
     },
@@ -144,6 +134,10 @@ module.exports = {
 
         const song = queue[guildId].songs[n]; //Get the info for the requested song
 
+        if (song.filePath) {
+            fs.unlink(song.filePath, function (err) {});
+        };
+
         queue[guildId].songs.splice(n, 1); //Remove the song
 
         return Promise.resolve(`**${song.title}** was removed from the queue!`);
@@ -187,6 +181,28 @@ module.exports = {
         queue[guildId].songs = a; //Set the queue to our newly-shuffled array
 
         return Promise.resolve("Queue shuffled");
+    },
+
+    clearQueue(guildId) {
+        if (!(guildId in queue)) { //Make sure the guild has a queue
+            return Promise.reject("No songs are currently playing");
+        };
+
+        const queueArr = queue[guildId].songs.slice(1); //Get every item except what's currently playing
+
+        if (queueArr.length) {
+            for (const song of queueArr) {
+                if (song.filePath) {
+                    fs.unlink(song.filePath, function (err) {});
+                };
+
+                queue[guildId].songs.splice(queue[guildId].songs.indexOf(song), 1)
+            };
+        };
+
+        queue[guildId].totalTimeMs = this.hmsToMs(queue[guildId].songs[0].duration); //Reset the total time
+
+        return Promise.resolve("Queue cleared");
     },
 
     seek(guildId, n, voiceChannel, msgChannel) {
@@ -247,7 +263,7 @@ module.exports = {
         return hrs + ':' + mins + ':' + secs;
     },
 
-    play(search, voiceChannel, msgChannel, user, addToTop) {
+    play(search, voiceChannel, msgChannel, user, addToTop, file) {
         if (!queue[voiceChannel.guild.id]) { //Initialize the server's queue
             queue[voiceChannel.guild.id] = {
                 totalTimeMs: 0,
@@ -260,7 +276,40 @@ module.exports = {
             };
         };
 
-        if (ytpl.validateID(search)) { //Check if the args are a valid playlist link
+        if (file) {
+            urlManager.downloadFromFromUrl(file).then(res => {
+                addToQueue(voiceChannel.guild.id, addToTop, res.duration, {
+                    title: res.title,
+                    url: res.url,
+                    thumbnail: res.thumbnail,
+                    duration: this.getTime(res.duration),
+                    channel: "N/A",
+                    views: "N/A",
+                    requestedBy: user,
+                    filePath: res.filePath
+                }).then(queueEmb => {
+                    if (queue[voiceChannel.guild.id].songs.length < 2) { //Check if we're already playing something
+                        return playSong(queue[voiceChannel.guild.id].songs[0], voiceChannel, msgChannel); //Play the first song in the queue
+                    } else {
+                        if (addToTop === true) { //Skip the song if we need to
+                            return this.skip(voiceChannel.guild.id);
+                        } else {
+                            queueEmb.setThumbnail("attachment://thumbnail.png");
+
+                            return msgChannel.send({
+                                embed: queueEmb,
+                                files: [{
+                                    attachment: res.thumbnail,
+                                    name: 'thumbnail.png'
+                                }]
+                            });
+                        };
+                    };
+                }).catch(err => {
+                    return msgChannel.send(err);
+                });
+            });
+        } else if (ytpl.validateID(search)) { //Check if the args are a valid playlist link
             ytpl(search, {
                 limit: 500 //Limit to only the first 500 items in the playlist
             }).then(res => {
@@ -386,6 +435,20 @@ module.exports = {
     },
 };
 
+function deleteQueue(id) {
+    if (queue[id] && queue[id].songs) { //Remove all local files
+        for (const song of queue[id].songs) {
+            if (song.filePath) {
+                fs.unlink(song.filePath, function (err) {});
+            };
+        };
+    };
+
+    delete queue[id];
+
+    return;
+};
+
 function parseResults(videos) {
     if (!videos || !videos.length) {
         return Promise.reject("No results found");
@@ -414,24 +477,23 @@ function addToQueue(id, addToTop, queueTime, info) {
         return Promise.reject("A required argument in the addToQueue function was missing");
     };
 
+    const queueObj = {
+        title: info.title,
+        url: info.url,
+        thumbnail: info.thumbnail,
+        duration: info.duration,
+        channel: info.channel,
+        requestedBy: info.requestedBy
+    };
+
+    if (info.filePath) {
+        queueObj.filePath = info.filePath;
+    };
+
     if (addToTop === true) { //Check if we want to add the song to the beginning or end of the array
-        queue[id].songs.splice(1, 0, {
-            title: info.title,
-            url: info.url,
-            thumbnail: info.thumbnail,
-            duration: info.duration,
-            channel: info.channel,
-            requestedBy: info.requestedBy
-        });
+        queue[id].songs.splice(1, 0, queueObj);
     } else {
-        queue[id].songs.push({
-            title: info.title,
-            url: info.url,
-            thumbnail: info.thumbnail,
-            duration: info.duration,
-            channel: info.channel,
-            requestedBy: info.requestedBy
-        });
+        queue[id].songs.push(queueObj);
     };
 
     queue[id].totalTimeMs = queue[id].totalTimeMs + queueTime; //Update the queue's total time
@@ -459,12 +521,23 @@ async function playSong(song, voiceChannel, msgChannel, seek) {
             seek = 0;
         };
 
-        const stream = await ytdl(song.url, {
-            filter: 'audioonly',
-            opusEncoded: true,
-            highWaterMark: 1 << 25,
-            seek: seek / 1000
-        });
+        if (song.filePath) {
+            const songStream = fs.createReadStream(song.filePath);
+
+            var stream = ytdl.arbitraryStream(songStream, {
+                filter: 'audioonly',
+                opusEncoded: true,
+                highWaterMark: 1 << 25,
+                seek: seek / 1000
+            });
+        } else {
+            var stream = ytdl(song.url, {
+                filter: 'audioonly',
+                opusEncoded: true,
+                highWaterMark: 1 << 25,
+                seek: seek / 1000
+            });
+        };
 
         const dispatcher = connection.play(stream, {
             type: 'opus',
@@ -478,7 +551,7 @@ async function playSong(song, voiceChannel, msgChannel, seek) {
         const playingEmb = new Discord.MessageEmbed()
             .setColor(config.embedColor)
             .setAuthor("Now Playing")
-            .setThumbnail(song.thumbnail)
+            .setThumbnail("attachment://thumbnail.png")
             .setTitle(song.title)
             .setURL(song.url)
             .addField("Duration", song.duration, true)
@@ -487,7 +560,11 @@ async function playSong(song, voiceChannel, msgChannel, seek) {
 
         if (seek === 0) {
             msgChannel.send({
-                embed: playingEmb
+                embed: playingEmb,
+                files: [{
+                    attachment: song.thumbnail,
+                    name: 'thumbnail.png'
+                }]
             });
         };
 
@@ -501,7 +578,7 @@ async function playSong(song, voiceChannel, msgChannel, seek) {
             if (queue[voiceChannel.guild.id] && queue[voiceChannel.guild.id].channel !== null && queue[voiceChannel.guild.id].channel.channel.members.size < 2) {
                 msgChannel.send("I can't play music by myself, so I left the voice channel");
 
-                delete queue[voiceChannel.guild.id];
+                deleteQueue(voiceChannel.guild.id);
 
                 return voiceChannel.leave();
             };
@@ -511,6 +588,10 @@ async function playSong(song, voiceChannel, msgChannel, seek) {
             };
 
             if (!queue[voiceChannel.guild.id].repeatMode) { //Check if repeatMode is on for the server
+                if (queue[voiceChannel.guild.id].songs[0].filePath) {
+                    fs.unlink(queue[voiceChannel.guild.id].songs[0].filePath, function (err) {});
+                };
+
                 queue[voiceChannel.guild.id].songs.shift(); //Remove the first item from the queue
             };
 
@@ -519,7 +600,7 @@ async function playSong(song, voiceChannel, msgChannel, seek) {
             } else {
                 msgChannel.send("I finished playing the current queue!");
 
-                delete queue[voiceChannel.guild.id];
+                deleteQueue(voiceChannel.guild.id);
 
                 return voiceChannel.leave();
             };

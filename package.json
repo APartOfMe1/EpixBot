@@ -36,6 +36,7 @@
     "grapheme-splitter": "^1.0.4",
     "http": "0.0.1-security",
     "klaw": "^3.0.0",
+    "mp3-duration": "^1.1.0",
     "node-fetch": "^2.6.1",
     "node-gyp": "^7.1.2",
     "node-superfetch": "^0.1.11",
