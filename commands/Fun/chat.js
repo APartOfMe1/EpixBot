@@ -76,7 +76,7 @@ module.exports = {
                     const responseEmb = new Discord.MessageEmbed()
                         .setColor(config.embedColor)
                         .setDescription(response)
-                        .setFooter(`${config.name} | Use "${client.settings.get(msg.guild.id).prefix}chat" to join/leave the conversation!`, client.user.avatarURL());
+                        .setFooter(`${config.name} | Use "${client.db.settings.get(msg.guild.id).prefix}chat" to join/leave the conversation!`, client.user.avatarURL());
 
                     return msg.channel.send({
                         embed: responseEmb
