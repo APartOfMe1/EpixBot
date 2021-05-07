@@ -2,6 +2,7 @@
 const Discord = require("discord.js");
 global.client = new Discord.Client();
 const fs = require("fs");
+const path = require("path");
 const config = require("../../config/config.json");
 const startup = require("./Startup/startup.js");
 const cmdhandler = require("./Command-Handler/command-handler.js");
@@ -18,6 +19,22 @@ client.phone = {
 
 client.on("ready", () => {
     startup.addCommands("./commands"); //Start the bootup process by loading available commands
+
+    const dirArr = [
+        path.resolve("./assets/downloads/mp3"),
+        path.resolve("./assets/downloads/midi"),
+        path.resolve("./assets/downloads/midi/conversions")
+    ];
+
+    for (const dir of dirArr) { //Loop through each directory
+        fs.readdir(dir, (err, files) => { //Read each file
+            for (const file of files) {
+                if (file.endsWith(".mid") || file.endsWith(".mp3")) { //Delete midi and mp3 files left over
+                    fs.unlink(path.join(dir, file), function (err) {});
+                };
+            };
+        });
+    };
 
     setInterval(() => { //Increment the reminder counters
         if (allowDbUsage) {
