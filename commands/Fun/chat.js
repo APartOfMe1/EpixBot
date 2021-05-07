@@ -54,7 +54,7 @@ module.exports = {
             });
 
             collector.on("collect", m => {
-                if (m.content.toLowerCase() === `${config.prefix}chat` || m.content.toLowerCase() === `${client.settings.get(msg.guild.id).prefix}chat`) {
+                if (m.content.toLowerCase() === `${config.prefix}chat` || m.content.toLowerCase() === `${client.db.settings.get(msg.guild.id).prefix}chat`) {
                     removeUser(m.author);
 
                     if (chatters[msg.channel.id].length < 1) { //End the chat if there's no one left
