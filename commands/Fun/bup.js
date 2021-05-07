@@ -8,7 +8,6 @@ const config = require('../../config/config.json');
 const path = require("path");
 const midiPath = path.resolve("./assets/downloads/midi");
 const mp3Path = path.resolve("./assets/downloads/midi/conversions");
-const ytdl = require('discord-ytdl-core');
 
 module.exports = {
     name: 'bup',
@@ -54,7 +53,7 @@ module.exports = {
 
         checkDiskSpace(base).then((diskSpace) => {
             if (diskSpace.free < 26843531856) { //Make sure we always have at least 25gb of space free
-             return msg.channel.send("There are too many people converting files right now! Try again later");
+                return msg.channel.send("There are too many people converting files right now! Try again later");
             };
 
             msg.channel.send(`${emojis.loading} Processing... This could take a few minutes`).then((loadingMsg) => { //Send a loading message
@@ -71,8 +70,8 @@ module.exports = {
                                 attachment: `${mp3Path}/${filename}.mp3`,
                                 name: `${name}.mp3`
                             }]
-                        }).then(() => {
-                            const filter = m => m.author.id === msg.author.id && m.content.toLowerCase() === `${config.prefix}playbup`;
+                        }).then(bupMsg => {
+                            const filter = m => m.author.id === msg.author.id && [`${config.prefix}playbup`, `${client.db.settings.get(msg.guild.id).prefix}playbup`].includes(m.content.toLowerCase());
 
                             msg.channel.awaitMessages(filter, {
                                     max: 1,
@@ -80,35 +79,33 @@ module.exports = {
                                     errors: ['time']
                                 })
                                 .then(collected => {
-                                    msg.member.voice.channel.join().then(async connection => {
-                                        const songStream = fs.createReadStream(`${mp3Path}/${filename}.mp3`);
+                                    if (!msg.member.voice.channel) { //Make sure the user is in a VC
+                                        return msg.channel.send('You need to be in a voice channel!');
+                                    };
 
-                                        const stream = ytdl.arbitraryStream(songStream, {
-                                            filter: 'audioonly',
-                                            opusEncoded: true,
-                                            highWaterMark: 1 << 25,
-                                        });
+                                    const perms = msg.member.voice.channel.permissionsFor(msg.client.user); //Get the bots' permissions for the current voice channel
 
-                                        const dispatcher = connection.play(stream, {
-                                            type: 'opus',
-                                            bitrate: 'auto',
-                                            fec: true,
-                                        });
+                                    if (!perms.has('CONNECT')) { //Make sure the bot can connect
+                                        return msg.channel.send('I can\'t connect to this voice channel. Do I have the correct permissions?');
+                                    };
 
-                                        dispatcher.on("end", () => {
-                                            try {
-                                                fs.unlink(`${midiPath}/${filename}.mid`, function (err) {});
-        
-                                                fs.unlink(`${mp3Path}/${filename}.mp3`, function (err) {});
-                                            } catch (error) {
-                                                return;
-                                            };
+                                    if (!perms.has('SPEAK')) { //Make sure the bot can transmit audio
+                                        return msg.channel.send('I can\'t speak in this channel! Do I have the correct permissions?');
+                                    };
 
-                                            return msg.channel.send("I finished playing your song!");
-                                        });
+                                    if (!perms.has('VIEW_CHANNEL')) { //Make sure the bot can view the channel
+                                        return msg.channel.send('I can\'t view this channel! Do I have the correct permissions?');
+                                    };
 
-                                        return msg.channel.send("Playing!");
-                                    });
+                                    try {
+                                        fs.unlink(`${midiPath}/${filename}.mid`, function (err) {});
+
+                                        fs.unlink(`${mp3Path}/${filename}.mp3`, function (err) {});
+                                    } catch (error) {
+                                        return;
+                                    };
+
+                                    return client.player.play(args.join(" "), msg.member.voice.channel, msg.channel, msg.author, false, bupMsg.attachments.first().url);
                                 }).catch(err => {
                                     try {
                                         fs.unlink(`${midiPath}/${filename}.mid`, function (err) {});

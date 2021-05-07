@@ -118,3 +118,7 @@
 	- Better game logic
 	- Probably a ton more changes that I can't remember
 
+- Changes to /handlers/Music/music.js
+	- Added the ability to play from an mp3 file
+	- Edited several music commands to accommodate this
+	- Added /handlers/Music/Url-Parser/url-parser.js
