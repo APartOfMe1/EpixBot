@@ -20,6 +20,7 @@
 - Updates to /handlers/Main/main.js
 	- Improved error handling
 	- Bot will disallow database read/writes after uncaughtException error until reboot
+	- Bot will delete needless files on startup
 
 - Commands will now run if a message is updated
 
