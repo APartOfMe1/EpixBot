@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
 const config = require("../../config/config.json");
+const settingsManager = require("../../handlers/Settings/settings.js");
 
 module.exports = {
     name: 'settings',
@@ -17,26 +18,47 @@ module.exports = {
 
         var [prop, ...value] = args; //Split up the message 
 
-        const defaultSettings = { //Define the default settings
-            prefix: config.prefix,
-            logs: "disabled"
-        };
-
-        var guildConf = client.db.settings.ensure(msg.guild.id, defaultSettings); //Make sure that the enmap has the default settings
-
-        client.db.selfroles.ensure(msg.guild.id, {
-            selfroles: [],
-            autorole: "Not set"
-        });
+        const ensured = settingsManager.ensureAll(msg.guild.id);
 
         switch (prop) {
             case 'view':
-                view();
+                settingsManager.view.viewAll(msg.guild).then(res => {
+                    const viewembed = new Discord.MessageEmbed() //Setup and send an embed
+                        .setColor(config.embedColor)
+                        .addField("General", `\`\`\`Prefix: ${ensured.settings.prefix} \n\nAutorole: ${res.autorole}\`\`\``, true)
+                        .addField("Logs", `\`\`\`Logs: ${ensured.settings.logs} \n\nLog Channel: ${res.logchannel} \n\nIgnored Users/Channels: ${res.ignored.join(", ")}\`\`\``, true)
+                        .addField("Commands", `\`\`\`Disabled Commands: ${res.disabled}\`\`\``)
+                        .addField("Selfroles", `\`\`\`${res.selfroles.join(", ")}\`\`\``);
+
+                    return msg.channel.send({
+                        embed: viewembed
+                    });
+                });
 
                 break;
 
             case 'prefix':
-                prefix();
+                settingsManager.prefix.setPrefix(msg.guild, args.slice(1).join(' ')).then(res => {
+                    return msg.channel.send(`Prefix has been changed to: \`${res}\``); //Send a success message
+                }).catch(e => {
+                    switch (e) { //Figure out which error occurred
+                        case "invalidPrefix":
+                            msg.channel.send('Your prefix should be 5 characters max and not include any spaces');
+
+                            break;
+
+                        case "noPrefix":
+                            const noPrefixEmb = new Discord.MessageEmbed()
+                            .setColor(config.embedColor)
+                            .addField("Prefix Settings", `To change the prefix, use \`${config.prefix}settings prefix <prefix>\`. For example: \`${config.prefix}settings prefix eb!\`\n\nNote that your prefix can't have spaces, and cannot be more than 5 characters long`);
+                            
+                            msg.channel.send({
+                                embed: noPrefixEmb
+                            });
+
+                            break;
+                    };
+                });
 
                 break;
 
@@ -72,96 +94,6 @@ module.exports = {
                 return msg.channel.send({
                     embed
                 });
-        };
-
-        function view() {
-            try { //Get the logchannel
-                var logchannel = `#${client.channels.cache.get(client.db.logchannel.get(msg.guild.id)).name} (${client.db.logchannel.get(msg.guild.id)})`;
-            } catch (error) {
-                var logchannel = "disabled";
-            };
-
-            var ignoredlist = client.db.ignore.get(msg.guild.id); //Get the list of ignored channels/users
-
-            var idconvert = []; //Blank variable to convert usernames from IDs
-
-            try {
-                ignoredlist.forEach(id => { //Get the list of ignored users/channels and add them to the variable
-                    try {
-                        idconvert.push(client.users.cache.get(id).tag);
-                    } catch (error) { //If the result isn't a user, check to see if it's a channel
-                        idconvert.push(`#${client.channels.cache.get(id).name}`);
-                    };
-                });
-            } catch (error) {
-                idconvert.push("None have been ignored");
-            };
-
-
-            if (idconvert.length === 0) { //Check if any data was added
-                idconvert.push("None have been ignored");
-            };
-
-            var getAll = client.db.selfroles.get(msg.guild.id, "selfroles"); //Get the list of selfroles
-
-            var roleList = [];
-
-            try {
-                getAll.forEach(role => { //Get the list of ignored users/channels and add them to the variable
-                    roleList.push(`${msg.guild.roles.cache.get(role).name} (${role})`);
-                });
-            } catch (error) {
-                roleList.push("No selfroles available");
-            };
-
-            if (roleList.length === 0) { //Check if any data was added
-                roleList.push("No selfroles available");
-            };
-
-            if (guildConf.logs === undefined) { //Set logs as disabled if not found
-                client.db.settings.set(msg.guild.id, 'disabled', "logs");
-            };
-
-            if (msg.guild.roles.cache.has(client.db.selfroles.get(msg.guild.id, "autorole"))) {
-                var selfrole = msg.guild.roles.cache.get(client.db.selfroles.get(msg.guild.id, "autorole")).name;
-            } else {
-                var selfrole = client.db.selfroles.get(msg.guild.id, "autorole");
-            };
-
-            var disabledcommands = client.db.disabledCommands.get(msg.guild.id); //Get the list of disabled commands
-
-            if (!disabledcommands || disabledcommands.length === 0) { //If there aren't any disabled commands, set a backup message
-                disabledcommands = "No commands have been disabled";
-            };
-
-            const viewembed = new Discord.MessageEmbed() //Setup and send an embed
-                .setColor(config.embedColor)
-                .addField("General", `\`\`\`Prefix: ${guildConf.prefix} \n\nAutorole: ${selfrole}\`\`\``, true)
-                .addField("Logs", `\`\`\`Logs: ${guildConf.logs} \n\nLog Channel: ${logchannel} \n\nIgnored Users/Channels: ${idconvert.join(", ")}\`\`\``, true)
-                .addField("Commands", `\`\`\`Disabled Commands: ${disabledcommands}\`\`\``)
-                .addField("Selfroles", `\`\`\`${roleList.join(", ")}\`\`\``);
-
-            return msg.channel.send({
-                embed: viewembed
-            });
-        };
-
-        function prefix() {
-            const prefix = args.slice(1).join(' '); //Split the message to get the prefix
-
-            if (prefix.length > 5 || prefix.includes(' ')) { //Make sure the prefix isn't anything crazy
-                return msg.channel.send('Your prefix should be 5 characters max and not include any spaces');
-            };
-
-            if (prefix === "") { //If there wasn't any prefix given, send a default message
-                return msg.channel.send(`To change the prefix, use \`${config.prefix}settings prefix <prefix>\`. For example \`${config.prefix}settings prefix eb!\`. Note that your prefix can't have spaces, and cannot be more than 5 characters long`);
-            };
-
-            client.db.settings.set(msg.guild.id, value.join(" "), prop); //Set the prefix
-
-            msg.channel.send(`Prefix has been changed to: \`${value.join(" ")}\``); //Send a success message
-
-            return msg.guild.me.setNickname(`${client.user.username} [${prefix}]`); //Set the bot's nickname to match the new prefix
         };
 
         function logs() {
@@ -375,7 +307,7 @@ module.exports = {
             };
 
             if (args[1]) {
-                if (args[1].toLowerCase() === "remove") { 
+                if (args[1].toLowerCase() === "remove") {
                     client.db.selfroles.set(msg.guild.id, "Not set", "autorole"); //Remove the autorole
 
                     return msg.channel.send("The autorole has been disabled");

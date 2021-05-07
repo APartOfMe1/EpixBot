@@ -123,3 +123,5 @@
 	- Added the ability to play from an mp3 file
 	- Edited several music commands to accommodate this
 	- Added /handlers/Music/Url-Parser/url-parser.js
+
+- Added /templates for anyone wanting to host the bot themselves
