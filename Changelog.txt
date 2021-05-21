@@ -79,6 +79,7 @@
 	- Removed the user parameter from the checkTime function
 	- Changed one year streak bonus to 75,000 credits
 	- Added a 25,000 credit bonus for a 100 day streak
+	- Lowered cooldown from 24h to 23h30m
 
 - Slightly updated wording in /commands/Monetary/slots.js
 
