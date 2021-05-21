@@ -48,7 +48,7 @@ module.exports = {
 
             return msg.channel.send(finalMsg);
         } else {
-            var waitMsg = `You've already used this command today! Try again in **${getTime(86400000 - (new Date().valueOf() - client.db.credits.get(msg.author.id, "lastran")))}**`;
+            var waitMsg = `You've already used this command today! Try again in **${getTime(84600000 - (new Date().valueOf() - client.db.credits.get(msg.author.id, "lastran")))}**`;
 
             if (client.db.credits.get(msg.member.id, "canspeedup")) { //Check if the user has a bonus
                 waitMsg = `You've already used this command today! Try again in **${getTime(54000000 - (new Date().valueOf() - client.db.credits.get(msg.author.id, "lastran")))}**`;
@@ -94,7 +94,7 @@ module.exports = {
                 };
             };
 
-            if ((time + 86400000) > currentDate) { //Check if it's been 24 hours
+            if ((time + 84600000) > currentDate) { //Check if it's been 23:30
                 return false;
             } else if ((time + 172800000) < currentDate) { //Check if it's been 48 hours
                 return 'overTime';
