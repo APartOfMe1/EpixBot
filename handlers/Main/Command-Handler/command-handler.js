@@ -45,7 +45,7 @@ module.exports = {
 
         client.db.disabledCommands.ensure(msg.guild.id, []); //Make sure that the enmap won't kill itself lol
 
-        if (client.db.disabledCommands.includes(msg.guild.id, cmdName)) { // If the command is disabled, ignore 
+        if (client.db.disabledCommands.includes(msg.guild.id, cmd.name)) { // If the command is disabled, ignore 
             return msg.channel.send(`**${cmdName}** is disabled`);
         };
 

@@ -1,3 +1,5 @@
+These are all the changes I actually remembered to log. I know there's a ton more I just forgot about.
+
 - Added /commands/Administration/botbackup.js
 	- Added /handlers/Backup/ and its contents
 
@@ -126,3 +128,8 @@
 	- Added /handlers/Music/Url-Parser/url-parser.js
 
 - Added /templates for anyone wanting to host the bot themselves
+
+- Changes to /commands/Moderation/settings.js	
+	- Added /handlers/Settings and all subfolders
+	- Moved all functions to their own handlers
+	- Fixed issue with command ignoring. Aliases now work properly

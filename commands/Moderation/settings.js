@@ -18,6 +18,8 @@ module.exports = {
 
         const ensured = settingsManager.ensureAll(msg.guild.id);
 
+        const intent = args[1] ? args[1].toLowerCase() : args[1]; //Get the subcommand if given
+
         switch (prop) {
             case 'view':
                 settingsManager.view.viewAll(msg.guild).then(res => {
@@ -61,8 +63,6 @@ module.exports = {
                 break;
 
             case 'logs':
-                const intent = args[1] ? args[1].toLowerCase() : args[1]; //Get the subcommand
-
                 switch (intent) {
                     case "enable":
                         settingsManager.logs.enable(msg, args).then(res => {
@@ -107,7 +107,34 @@ module.exports = {
                 break;
 
             case "commands":
-                commands();
+                if (!args[2]) { //Send a message if there was no command specified
+                    return msg.channel.send(`To ignore commands entirely use \`${config.prefix}settings commands enable/disable <command>\`. For example, \`${config.prefix}settings commands disable actas\``);
+                };
+
+                const cmd = args[2].toLowerCase(); //Get the command specified
+
+                switch (intent) {
+                    case "disable":
+                        settingsManager.commands.disable(msg.guild.id, cmd).then(res => {
+                            return msg.channel.send(res); //Send a success message
+                        }).catch(e => {
+                            return msg.channel.send(e);
+                        });
+
+                        break;
+
+                    case "enable":
+                        settingsManager.commands.enable(msg.guild.id, cmd).then(res => {
+                            return msg.channel.send(res); //Send a success message
+                        }).catch(e => {
+                            return msg.channel.send(e);
+                        });
+
+                        break;
+
+                    default:
+                        return msg.channel.send(`To ignore commands entirely use \`${config.prefix}settings commands <enable/disable> <command>\`. For example, \`${config.prefix}settings commands disable actas\``); //Send an informational message
+                };
 
                 break;
 
@@ -133,71 +160,6 @@ module.exports = {
                 return msg.channel.send({
                     embed
                 });
-        };
-
-        function commands() {
-            const sub = args[1];
-
-            if (!args[2]) { //Send a message if there was no command specified
-                return msg.channel.send(`To ignore commands entirely use \`${config.prefix}settings commands enable/disable <command>\`. For example, \`${config.prefix}settings commands disable actas\``);
-            };
-
-            var cmd = args[2].toLowerCase(); //Get the command specified
-
-            switch (sub) {
-                case "disable":
-                    const unignorable = [ //List of commands that can't be ignored
-                        "settings",
-                        "help",
-                        "helpdm"
-                    ];
-
-                    for (const ignore of unignorable) { //Make sure the command exists and can be ignored
-                        if (ignore === cmd || !client.commands.get(cmd)) {
-                            return msg.channel.send(`**${cmd}** either doesn't exist or cannot be disabled`);
-                        };
-                    };
-
-                    var findCmd = client.commands.get(cmd) || client.commands.find(c => c.aliases && c.aliases.includes(cmd)); //Get a list of commands and aliases
-
-                    if (findCmd.category === "Administration") { //If the command is in the Administration category, ignore it
-                        return msg.channel.send(`**${cmd}** either doesn't exist or cannot be disabled`);
-                    };
-
-                    client.db.disabledCommands.ensure(msg.guild.id, []); //Ensure that the enmap has the guild
-
-                    if (client.db.disabledCommands.includes(msg.guild.id, cmd)) { //Check if the command is already disabled
-                        return msg.channel.send(`**${cmd}** is already disabled`);
-                    };
-
-                    client.db.disabledCommands.push(msg.guild.id, cmd); //Add the command to the enmap
-
-                    return msg.channel.send(`**${cmd}** has been disabled`); //Send a success message
-
-                case "enable":
-                    if (!client.commands.get(cmd)) { //Check if the command exists
-                        return msg.channel.send(`**${cmd}** either doesn't exist or cannot be disabled/enabled`);
-                    };
-
-                    var findCmd = client.commands.get(cmd) || client.commands.find(c => c.aliases && c.aliases.includes(cmd)); //Get a list of commands and aliases
-
-                    if (findCmd.category === "Administration") { //If the command is in the Administration category, ignore it
-                        return msg.channel.send(`**${cmd}** either doesn't exist or cannot be disabled`);
-                    };
-
-                    client.db.disabledCommands.ensure(msg.guild.id, []); //Ensure that the enmap has the guild
-
-                    if (!client.db.disabledCommands.includes(msg.guild.id, cmd)) { //Check if the command is actually disabled
-                        return msg.channel.send(`**${cmd}** is not disabled!`);
-                    };
-
-                    client.db.disabledCommands.remove(msg.guild.id, cmd); //Remove the command from the map
-
-                    return msg.channel.send(`**${cmd}** has been enabled`); //Send a success message
-
-                default:
-                    return msg.channel.send(`To ignore commands entirely use \`${config.prefix}settings commands <enable/disable> <command>\`. For example, \`${config.prefix}settings commands disable actas\``); //Send an informational message
-            };
         };
 
         function selfroles() {
