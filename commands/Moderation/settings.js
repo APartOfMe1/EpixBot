@@ -10,8 +10,6 @@ module.exports = {
     usage: '`{prefix}settings <setting> <value>`',
     examples: 'Use `{prefix}settings` for more detailed information',
     async execute(msg, args) {
-        //Hoo boy here we go. This is a huge mess, but I *really* don't want to rewrite it
-
         if (!msg.member.hasPermission('MANAGE_GUILD')) { //Make sure the author can manage the guild
             return msg.reply("Sorry! You need the manage server permission to change the settings!");
         };
@@ -49,9 +47,9 @@ module.exports = {
 
                         case "noPrefix":
                             const noPrefixEmb = new Discord.MessageEmbed()
-                            .setColor(config.embedColor)
-                            .addField("Prefix Settings", `To change the prefix, use \`${config.prefix}settings prefix <prefix>\`. For example: \`${config.prefix}settings prefix eb!\`\n\nNote that your prefix can't have spaces, and cannot be more than 5 characters long`);
-                            
+                                .setColor(config.embedColor)
+                                .addField("Prefix Settings", `To change the prefix, use \`${config.prefix}settings prefix <prefix>\`. For example: \`${config.prefix}settings prefix eb!\`\n\nNote that your prefix can't have spaces, and cannot be more than 5 characters long`);
+
                             msg.channel.send({
                                 embed: noPrefixEmb
                             });
@@ -63,7 +61,48 @@ module.exports = {
                 break;
 
             case 'logs':
-                logs();
+                const intent = args[1] ? args[1].toLowerCase() : args[1]; //Get the subcommand
+
+                switch (intent) {
+                    case "enable":
+                        settingsManager.logs.enable(msg, args).then(res => {
+                            return msg.channel.send(`Logs have been successfully enabled in ${res}`); //Send a success message
+                        }).catch(e => {
+                            return msg.channel.send(e);
+                        });
+
+                        break;
+
+                    case "disable":
+                        settingsManager.logs.disable(msg.guild.id).then(() => {
+                            return msg.channel.send('Logs have been successfully disabled'); //Send a success message
+                        }).catch(e => {
+                            return msg.channel.send(e);
+                        });
+
+                        break;
+
+                    case "ignore":
+                        settingsManager.logs.ignore(msg, args).then(res => {
+                            return msg.channel.send(`${res} was successfully excluded from message logging`); //Send a success message
+                        }).catch(e => {
+                            return msg.channel.send(e);
+                        });
+
+                        break;
+
+                    case "unignore":
+                        settingsManager.logs.unignore(msg, args).then(res => {
+                            return msg.channel.send(`${res} is now included in message logging`); //Send a success message
+                        }).catch(e => {
+                            return msg.channel.send(e);
+                        });
+
+                        break;
+
+                    default:
+                        return msg.channel.send(`For message logging please use the format \`${config.prefix}settings logs <enable/disable> <channel>\`. For example, \`${config.prefix}settings logs enable #logs\` \n\nYou can also exclude a user or channel from logging by using \`${config.prefix}settings logs <ignore/unignore> <@user/#channel>\``); //Send an info message
+                };
 
                 break;
 
@@ -94,83 +133,6 @@ module.exports = {
                 return msg.channel.send({
                     embed
                 });
-        };
-
-        function logs() {
-            const log = args[1]; //Get the subcommand
-
-            switch (log) {
-                case "enable":
-                    if (args[2]) {
-                        var chnl = msg.mentions.channels.first(); //Get the mentioned channel
-
-                        if (!chnl) { //Send a message if the channel is invalid
-                            return msg.channel.send('Please specify a channel!');
-                        };
-                    } else { //Send a message if there wasn't a channel specified
-                        return msg.channel.send('Please specify a channel!');
-                    };
-
-                    client.db.settings.set(msg.guild.id, 'enabled', prop); //Set logs to enabled
-
-                    client.db.logchannel.set(msg.guild.id, chnl.id); //Set the logchannel
-
-                    return msg.channel.send(`Logs have been successfully enabled in ${chnl}`); //Send a success message
-
-                case "disable":
-                    if (!client.db.logchannel.has(msg.guild.id)) { //Make sure the logs aren't already disabled
-                        return msg.channel.send('Logs are already disabled!');
-                    };
-
-                    client.db.settings.set(msg.guild.id, 'disabled', prop); //Set logs to disabled
-
-                    client.db.logchannel.delete(msg.guild.id); //Delete the logchannel
-
-                    return msg.channel.send('Logs have been successfully disabled'); //Send a success message
-
-                case "ignore":
-                    if (args[2]) {
-                        var ignoredid = msg.mentions.channels.first() || msg.mentions.users.first(); //Get the id to ignore
-
-                        if (!ignoredid) { //Send an error if the channel/user is invalid
-                            return msg.channel.send("Please specify a user or channel to ignore from logging");
-                        };
-                    } else { //Send an error if there weren't any channels given
-                        return msg.channel.send("Please specify a user or channel to ignore from logging");
-                    };
-
-                    if (client.db.ignore.includes(msg.guild.id, ignoredid.id)) { //Make sure the user isn't already ignored
-                        return msg.channel.send('That user or channel is already ignored from logging!');
-                    };
-
-                    client.db.ignore.ensure(msg.guild.id, []); //Ensure that the enmap has the guild
-
-                    client.db.ignore.push(msg.guild.id, ignoredid.id); //Add the id to the enmap
-
-                    return msg.channel.send(`${ignoredid} was successfully excluded from message logging`); //Send a success message
-
-                case "unignore":
-                    if (args[2]) {
-                        var ignoredid = msg.mentions.channels.first() || msg.mentions.users.first(); //get the id to ignore
-
-                        if (!ignoredid) { //Send an error if the channel/user is invalid
-                            return msg.channel.send("Please specify a user or channel to unignore");
-                        };
-                    } else {
-                        return msg.channel.send("Please specify a user or channel to unignore"); //Send an error if there weren't any channels given
-                    };
-
-                    if (!client.db.ignore.includes(msg.guild.id, ignoredid.id)) { //Make sure the user is actually ignored
-                        return msg.channel.send('That user or channel isn\'t ignored from logging!');
-                    };
-
-                    client.db.ignore.remove(msg.guild.id, ignoredid.id); //Remove the id from the list
-
-                    return msg.channel.send(`${ignoredid} is now included in message logging`); //Send a success message
-
-                default:
-                    return msg.channel.send(`For message logging please use the format \`${config.prefix}settings logs <enable/disable> <channel>\`. For example, \`${config.prefix}settings logs enable #logs\` \n\nYou can also exclude a user or channel from logging by using \`${config.prefix}settings logs <ignore/unignore> <@user/#channel>\``); //Send an info message
-            };
         };
 
         function commands() {
