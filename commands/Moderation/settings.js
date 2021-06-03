@@ -139,7 +139,34 @@ module.exports = {
                 break;
 
             case "selfroles":
-                selfroles();
+                settingsManager.selfroles.ensurePerms(msg.guild).then(() => {
+                    switch (intent) {
+                        case "add":
+                            settingsManager.selfroles.add(msg, args).then(res => {
+                                return msg.channel.send(res); //Send a success message
+                            }).catch(e => {
+                                return msg.channel.send(e);
+                            });
+
+                            break;
+
+                        case "remove":
+                            settingsManager.selfroles.remove(msg, args).then(res => {
+                                return msg.channel.send(res); //Send a success message
+                            }).catch(e => {
+                                return msg.channel.send(e);
+                            });
+
+                            break;
+
+                        default:
+                            msg.channel.send(`To add a role to the list of selfroles, use \`${config.prefix}settings selfroles add <name/id/@role>\`. For example: \`${config.prefix}settings selfroles add announcement-pings\` \n\nTo remove a role from the list, just do the opposite: \`${config.prefix}settings selfroles remove <name/id/@role>\``);
+                            
+                            break;
+                    };
+                }).catch(e => {
+                    return msg.channel.send(e);
+                });
 
                 break;
 
@@ -160,64 +187,6 @@ module.exports = {
                 return msg.channel.send({
                     embed
                 });
-        };
-
-        function selfroles() {
-            client.db.selfroles.ensure(msg.guild.id, {
-                selfroles: [],
-                autorole: "Not set"
-            });
-
-            if (!msg.guild.me.hasPermission('MANAGE_ROLES')) { //Send an error if the bot doesn't have permissions
-                return msg.channel.send("I don't have permissions to add roles to users! Please give me the \"Manage Roles\" permission and run the command again");
-            };
-
-            switch (args[1]) {
-                case "add":
-                    if (args[2]) { //Check if a role was given
-                        var role = msg.guild.roles.cache.find(i => i.name.toLowerCase() === args.slice(2).join(" ").toLowerCase()) || msg.guild.roles.cache.find(i => i.id === args[2]) || msg.mentions.roles.first();
-
-                        if (!role) { //Check if the given role is valid
-                            return msg.channel.send("I couldn't find that role! Try mentioning it or giving its ID");
-                        };
-                    } else {
-                        return msg.channel.send(`To add a role to the list of selfroles, use \`${config.prefix}settings selfroles add <name/id/@role>\`. For example: \`${config.prefix}settings selfroles add announcement-pings\``);
-                    };
-
-                    if (msg.member.roles.highest.comparePositionTo(role) < 0) { //Send an error if the member has a higher role than the bot
-                        return msg.channel.send("I can't add a role to someone higher up than me!");
-                    };
-
-                    client.db.selfroles.push(msg.guild.id, role.id, "selfroles"); //Add the role to the list of selfroles
-
-                    msg.channel.send(`Alright! I've added **${role.name}** to the list of selfroles. Users can assign it to themselves by using \`${config.prefix}selfrole ${role.name}\``);
-
-                    break;
-
-                case "remove":
-                    if (args[2]) { //Check if a role was given
-                        var role = msg.guild.roles.cache.find(i => i.name.toLowerCase() === args.slice(2).join(" ").toLowerCase()) || msg.guild.roles.cache.find(i => i.id === args[2]) || msg.mentions.roles.first();
-
-                        if (!role) { //Make sure the role is valid
-                            return msg.channel.send("I couldn't find that role! Try mentioning it or giving its ID");
-                        };
-                    } else {
-                        return msg.channel.send(`To remove a role to the list of selfroles, use \`${config.prefix}settings selfroles remove <name/id/@role>\`. For example: \`${config.prefix}settings selfroles remove announcement-pings\``);
-                    };
-
-                    if (client.db.selfroles.includes(msg.guild.id, role.id, "selfroles")) { //Check if the array includes the given role
-                        client.db.selfroles.remove(msg.guild.id, role.id, "selfroles"); //Remove the role from the array
-
-                        return msg.channel.send(`**${role.name}** was removed from the list of selfroles`);
-                    } else {
-                        return msg.channel.send(`**${role.name}** isn't a selfrole!`);
-                    };
-
-                default:
-                    msg.channel.send(`To add a role to the list of selfroles, use \`${config.prefix}settings selfroles add <name/id/@role>\`. For example: \`${config.prefix}settings selfroles add announcement-pings\` \n\nTo remove a role from the list, just do the opposite: \`${config.prefix}settings selfroles remove <name/id/@role>\``);
-
-                    break;
-            };
         };
 
         function autorole() {
