@@ -23,7 +23,7 @@ module.exports = {
         if (!guild.me.hasPermission('MANAGE_ROLES')) { //Send an error if the bot doesn't have permissions
             return Promise.reject("I don't have permissions to add roles to users! Please give me the \"Manage Roles\" permission and run the command again");
         } else {
-            Promise.resolve();
+            return Promise.resolve();
         };
     }
 }

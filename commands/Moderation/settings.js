@@ -14,7 +14,7 @@ module.exports = {
             return msg.reply("Sorry! You need the manage server permission to change the settings!");
         };
 
-        var [prop, ...value] = args; //Split up the message 
+        var prop = args[0]; //Split up the message 
 
         const ensured = settingsManager.ensureAll(msg.guild.id);
 
@@ -173,10 +173,8 @@ module.exports = {
             case "autorole":
                 settingsManager.autoroles.ensurePerms(msg.guild).then(() => {
                     if (intent && intent === "remove") {
-                        settingsManager.selfroles.remove(msg.guild.id).then(res => {
+                        settingsManager.autoroles.removeRole(msg.guild.id).then(res => {
                             return msg.channel.send(res); //Send a success message
-                        }).catch(e => {
-                            return msg.channel.send(e);
                         });
 
                         return;
