@@ -171,7 +171,27 @@ module.exports = {
                 break;
 
             case "autorole":
-                autorole();
+                settingsManager.autoroles.ensurePerms(msg.guild).then(() => {
+                    if (intent && intent === "remove") {
+                        settingsManager.selfroles.remove(msg.guild.id).then(res => {
+                            return msg.channel.send(res); //Send a success message
+                        }).catch(e => {
+                            return msg.channel.send(e);
+                        });
+
+                        return;
+                    } else if (!intent) {
+                        return msg.channel.send(`To set up an autorole and have it be given to new users, use \`${config.prefix}settings autorole <name/id/@role>\`. For example: \`${config.prefix}settings autorole member\` \n\nTo remove the autorole, use \`${config.prefix}settings autorole remove\``);
+                    };
+
+                    settingsManager.autoroles.autorole(msg, args).then(res => {
+                        return msg.channel.send(res); //Send a success message
+                    }).catch(e => {
+                        return msg.channel.send(e);
+                    });
+                }).catch(e => {
+                    return msg.channel.send(e);
+                });
 
                 break;
 
@@ -187,37 +207,6 @@ module.exports = {
                 return msg.channel.send({
                     embed
                 });
-        };
-
-        function autorole() {
-            client.db.selfroles.ensure(msg.guild.id, {
-                selfroles: [],
-                autorole: "Not set"
-            });
-
-            if (!msg.guild.me.hasPermission('MANAGE_ROLES')) { //Send an error if the bot doesn't have permissions
-                return msg.channel.send("I don't have permissions to add roles to users! Please give me the \"Manage Roles\" permission and run the command again");
-            };
-
-            if (args[1]) {
-                if (args[1].toLowerCase() === "remove") {
-                    client.db.selfroles.set(msg.guild.id, "Not set", "autorole"); //Remove the autorole
-
-                    return msg.channel.send("The autorole has been disabled");
-                };
-
-                var role = msg.guild.roles.cache.find(i => i.name.toLowerCase() === args.slice(1).join(" ").toLowerCase()) || msg.guild.roles.cache.find(i => i.id === args[1]) || msg.mentions.roles.first();
-
-                if (!role) { //Check if a valid role was given
-                    return msg.channel.send("I couldn't find that role! Try mentioning it or giving its ID");
-                };
-
-                client.db.selfroles.set(msg.guild.id, role.id, "autorole"); //Set the autorole
-
-                return msg.channel.send(`**${role.name}** was successfully set as the auto role! Any new members that join will automatically get the role added to them. To remove the autorole, use \`${config.prefix}settings autorole remove\``);
-            } else {
-                return msg.channel.send(`To set up an autorole and have it be given to new users, use \`${config.prefix}settings autorole <name/id/@role>\`. For example: \`${config.prefix}settings autorole member\` \n\nTo remove the autorole, use \`${config.prefix}settings autorole remove\``);
-            };
         };
     },
 };
