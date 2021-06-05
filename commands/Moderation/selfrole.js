@@ -4,7 +4,7 @@ const config = require("../../config/config.json");
 module.exports = {
     name: 'selfrole',
     description: 'Add a role to yourself',
-    aliases: ["selfroles"],
+    aliases: ["selfroles", "iam"],
     category: 'Moderation',
     cooldown: 5000,
     async execute(msg, args) {
