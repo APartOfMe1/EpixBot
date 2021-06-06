@@ -133,3 +133,6 @@ These are all the changes I actually remembered to log. I know there's a ton mor
 	- Added /handlers/Settings and all subfolders
 	- Moved all functions to their own handlers
 	- Fixed issue with command ignoring. Aliases now work properly
+
+- Update to /commands/Moderation/selfrole.js
+	- Added "iam" alias
