@@ -77,8 +77,6 @@ module.exports = {
                 embed: errEmb
             });
 
-            console.log(e)
-
             if (client.channels.cache.get(config.errorChannel)) {
                 client.channels.cache.get(config.errorChannel).send(`There was an error in ${msg.guild} (${msg.guild.id}) while running the command **${cmd.name}** \n\`\`\`js\n${e}\`\`\``); //Send an error to the log channel
             };

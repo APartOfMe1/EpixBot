@@ -29,7 +29,6 @@ module.exports = {
                 }]
             });
         }).catch(err => {
-            console.log(err)
             return msg.channel.send("No songs are currently playing!");
         });
 

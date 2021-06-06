@@ -47,16 +47,12 @@ client.on('error', e => { //Send a message to the error channel when an error oc
     if (client.channels.cache.get(config.errorChannel)) {
         client.channels.cache.get(config.errorChannel).send(`There was an error with the client\n\`\`\`js\n${e}\`\`\``);
     };
-
-    console.log(e);
 });
 
 client.on('unhandledRejection', e => {
     if (client.channels.cache.get(config.errorChannel)) {
         client.channels.cache.get(config.errorChannel).send(`There was an unhandled rejection error\n\`\`\`js\n${e}\`\`\``);
     };
-
-    console.log(e);
 });
 
 process.on('uncaughtException', err => {
@@ -67,8 +63,6 @@ process.on('uncaughtException', err => {
     const path = `./handlers/Main/Error-Logs/Log_${d.getMonth() + 1}-${d.getDate()}-${d.getFullYear()}_${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}.txt`; //Generate the file name
 
     fs.writeFile(path, `There was an uncaught exception error. The details can be found below.\n\n${err.stack}`, function (e) {});
-
-    console.log(err.stack);
 
     if (client.channels.cache.get(config.errorChannel)) {
         if (err.toString().length < 1900) { //Format message around Discord's 2000 character limit
