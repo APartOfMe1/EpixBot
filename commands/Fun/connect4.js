@@ -22,13 +22,13 @@ module.exports = {
             "7️⃣"
         ];
 
-        var grid = [ //Preset some of the emojis for win check testing
+        var grid = [
             ["⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"],
             ["⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"],
-            ["⏺️", "⏺️", "⏺️", emojis.c4Red, "⏺️", "⏺️", "⏺️"],
-            ["⏺️", "⏺️", emojis.c4Red, "⏺️", "⏺️", "⏺️", "⏺️"],
-            ["⏺️", emojis.c4Red, "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"],
-            [emojis.c4Red, "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"]
+            ["⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"],
+            ["⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"],
+            ["⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"],
+            ["⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"]
         ];
 
         var user2 = msg.guild.members.cache.find(e => e.displayName.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.guild.members.cache.find(e => e.user.username.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.mentions.users.first() || client.users.cache.get(args[0]); //Find a user by username, nickname, mention, or id
@@ -146,8 +146,6 @@ module.exports = {
                     return makeMove(turn, c4Msg, newGrid, user2, turnId);
                 })
                 .catch(e => { //If the current player ran out of time
-                    console.log(e);
-
                     var loser = msg.guild.members.cache.get(turnId).displayName; //Get the loser
 
                     if (turn === emojis.c4Red) { //Advance to the next turn
@@ -227,7 +225,18 @@ module.exports = {
                 };
             };
 
-            //Check forward diagonals (NOT WORKING)
+            //Check forward diagonals
+            for (let r = 0; r < grid.length; r++) {
+                for (let i = grid[r].length; i >= 0; i--) {
+                    if (grid[r] && grid[r + 3]) {
+                        if (is4InARow(grid[r][i], grid[r + 1][i - 1], grid[r + 2][i - 2], grid[r + 3][i - 3])) {
+                            return true;
+                        };
+                    };
+                };
+            };
+
+            //Check backward diagonals
             for (let r = 0; r < grid.length; r++) {
                 for (let i = 0; i < grid[r].length; i++) {
                     if (grid[r] && grid[r + 3]) {
@@ -237,26 +246,6 @@ module.exports = {
                     };
                 };
             };
-
-            //Check backward diagonals
-            for (let r = 3; r < 6; r++) {
-                for (let i = 0; i < 4; i++) {
-                    if (grid[r] && grid[r + 3]) {
-                        if (is4InARow(grid[r][i], grid[r + 1][i - 1], grid[r + 2][i - 2], grid[r + 3][i - 3])) {
-                            return true;
-                        };
-                    };
-                };
-            };
-
-            /*var grid = [ //For reference
-            ["⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"],
-            ["⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"],
-            ["⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"],
-            ["⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"],
-            ["⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"],
-            ["⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"]
-            ];*/
 
             return false;
         };
