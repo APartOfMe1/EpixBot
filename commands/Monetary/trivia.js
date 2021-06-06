@@ -53,7 +53,7 @@ module.exports = {
             url = `https://opentdb.com/api.php?amount=1&encode=url3986&category=${parseInt(args[1])}`;
         };
 
-        client.db.credits.set(msg.author.id, client.credits.get(msg.author.id, "credits") - credits, "credits"); //Remove the specified amount of credits from the user's account
+        client.db.credits.set(msg.author.id, client.db.credits.get(msg.author.id, "credits") - credits, "credits"); //Remove the specified amount of credits from the user's account
 
         msg.channel.send(`You used **${credits}** credits to play trivia!`);
 
@@ -119,7 +119,7 @@ module.exports = {
                         earnedCredits = 5000;
                     };
 
-                    client.db.credits.set(msg.author.id, client.credits.get(msg.author.id, "credits") + earnedCredits, "credits"); //Set the credits
+                    client.db.credits.set(msg.author.id, client.db.credits.get(msg.author.id, "credits") + earnedCredits, "credits"); //Set the credits
 
                     const failEmbed = new Discord.MessageEmbed() //End the game if the user gave the wrong answer
                         .setTitle("Game Over")
@@ -140,7 +140,7 @@ module.exports = {
                     earnedCredits = 5000;
                 };
 
-                client.db.credits.set(msg.author.id, client.credits.get(msg.author.id, "credits") + earnedCredits, "credits"); //Set the credits
+                client.db.credits.set(msg.author.id, client.db.credits.get(msg.author.id, "credits") + earnedCredits, "credits"); //Set the credits
 
                 const timeEmbed = new Discord.MessageEmbed() //End the game if the user ran out of time
                     .setTitle("Game Over")

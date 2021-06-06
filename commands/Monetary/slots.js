@@ -35,7 +35,7 @@ module.exports = {
             return msg.channel.send("You don't have enough credits!");
         };
 
-        client.db.credits.set(msg.author.id, client.credits.get(msg.author.id, "credits") - credits, "credits"); //Remove the specified amount of credits from the user's account
+        client.db.credits.set(msg.author.id, client.db.credits.get(msg.author.id, "credits") - credits, "credits"); //Remove the specified amount of credits from the user's account
 
         msg.channel.send(`You used **${credits}** credits to spin the slot machine!`); //Send a success message
 

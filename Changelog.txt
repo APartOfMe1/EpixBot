@@ -136,3 +136,5 @@ These are all the changes I actually remembered to log. I know there's a ton mor
 
 - Update to /commands/Moderation/selfrole.js
 	- Added "iam" alias
+
+- Added /commands/Fun/connect4.js
