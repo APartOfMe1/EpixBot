@@ -21,16 +21,16 @@ module.exports = {
             return msg.channel.send("I need admin permissions to create/restore backups!");
         };
 
-        var maxMsgCount = 100; //Set the message count to restore per channel to 100. This can be increased as a patreon reward or something
+        var maxMsgCount = 250; //Set the message count to restore per channel. This can be increased as a patreon reward in the future or something
 
         if (args[0]) {
             if (args[0].toLowerCase() === "create") {
                 if (!cooldown.has(msg.guild.id)) { //Check if the guild is on a cooldown
                     cooldown.add(msg.guild.id); //Add the guild ot the cooldown
 
-                    setTimeout(() => { //Delete the guild from the cooldown after 12 hours. This is done separately from normal cooldowns since 12 hours is a long time, and normally cooldown times are displayed as seconds 
+                    setTimeout(() => { //Delete the guild from the cooldown after 24 hours. This is done separately from normal cooldowns since 12 hours is a long time, and normally cooldown times are displayed as seconds 
                         cooldown.delete(msg.guild.id);
-                    }, 43200000);
+                    }, 86400000);
 
                     var waitingMsg = await msg.channel.send(`${emojis.loading} Creating backup... This may take a few minutes`); //Send a message to edit later
 
@@ -46,7 +46,7 @@ module.exports = {
 
                     return;
                 } else { //If the guild is on a cooldown
-                    return msg.channel.send(`Please wait 12 hours in between backups`);
+                    return msg.channel.send(`Please wait 24 hours in between backups`);
                 };
             } else if (args[0].toLowerCase() === "restore") {
                 if (!args[1]) { //Make sure an id is given
@@ -64,7 +64,7 @@ module.exports = {
                     time: 45000,
                     errors: ['time']
                 }).then(async collected => {
-                    msg.author.send(`${emojis.loading} Restoring the backup... This will likely take a while`);
+                    msg.author.send(`${emojis.loading} Restoring the backup... This will likely take a while. Please don't touch anything during the restore, as that can mess things up and cause your restore to fail.`);
 
                     backup.load(args[1], msg.guild, { //Load the backup
                         clearGuildBeforeRestore: true,
