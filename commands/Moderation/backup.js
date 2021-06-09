@@ -1,15 +1,17 @@
 var Discord = require("discord.js");
+const path = require("path");
 const backup = require("discord-backup");
 const config = require("../../config/config.json");
 const emojis = require("../../assets/emojis/emojis.json");
 const cooldown = new Set();
+backup.setStorageFolder(path.resolve("./assets/backups"));
 
 module.exports = {
     name: 'backup',
     description: 'Backup or restore everything in your server',
     category: 'Moderation',
     aliases: ["backups"],
-    cooldown: 300000,
+    cooldown: 5000,
     usage: '`{prefix}backup create` or `{prefix}backup restore <id>`',
     examples: '`{prefix}backup restore 730448128594587340`',
     async execute(msg, args) {
@@ -21,7 +23,7 @@ module.exports = {
             return msg.channel.send("I need admin permissions to create/restore backups!");
         };
 
-        var maxMsgCount = 250; //Set the message count to restore per channel. This can be increased as a patreon reward in the future or something
+        var maxMsgCount = 50; //Set the message count to restore per channel. This can be increased as a patreon reward in the future or something
 
         if (args[0]) {
             if (args[0].toLowerCase() === "create") {
@@ -35,11 +37,16 @@ module.exports = {
                     var waitingMsg = await msg.channel.send(`${emojis.loading} Creating backup... This may take a few minutes`); //Send a message to edit later
 
                     backup.create(msg.guild, { //Create the backup
-                        jsonBeautify: true,
+                        jsonSave: true,
+                        jsonBeautify: false,
                         maxMessagesPerChannel: maxMsgCount,
                         saveImages: "base64"
                     }).then((backupData) => {
-                        msg.author.send(`The backup for **${msg.guild}** was successfully created! To restore it, you'll need to run \`${config.prefix}backup restore ${backupData.id}\` \n\nYour backup id: **${backupData.id}**`); //Send a success message to the author
+                        msg.author.send(`The backup for **${msg.guild}** was successfully created! To restore it, you'll need to run \`${config.prefix}backup restore ${backupData.id}\`\n\nYour backup id: **${backupData.id}**\n\nThe backup file is included below. It's recommended to store this file somewhere safe in case the remote copy ever gets deleted. You can also share this file with others to let them have a copy of the server.`, {
+                            files: [
+                                path.resolve(`./assets/backups/${backupData.id}.json`)
+                            ]
+                        }); //Send a success message to the author
 
                         waitingMsg.edit(`:white_check_mark: The backup was successfully created and the details were sent to **${msg.guild.members.cache.get(msg.author.id).displayName}**`); //Edit the message
                     });
@@ -64,11 +71,16 @@ module.exports = {
                     time: 45000,
                     errors: ['time']
                 }).then(async collected => {
-                    msg.author.send(`${emojis.loading} Restoring the backup... This will likely take a while. Please don't touch anything during the restore, as that can mess things up and cause your restore to fail.`);
+                    const restoreMsg = await msg.author.send(`${emojis.loading} Restoring the backup... This can take up to a few hours. Please don't touch anything during the restore, as that can mess things up and cause your restore to fail.`);
 
                     backup.load(args[1], msg.guild, { //Load the backup
                         clearGuildBeforeRestore: true,
                         maxMessagesPerChannel: maxMsgCount
+                    }).then(() => {
+                        //Delete the message and send a new one to send a notification to the author
+                        restoreMsg.delete();
+
+                        msg.author.send("✅ Done! Go check out your newly-restored server!");
                     }).catch(e => {
                         return msg.channel.send("That isn't a valid backup ID!"); //If there was an error, assume the code was wrong
                     });

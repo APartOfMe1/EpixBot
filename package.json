@@ -23,7 +23,7 @@
     "chalk": "^4.1.0",
     "check-disk-space": "^2.1.0",
     "cleverbot-free": "^1.1.6",
-    "discord-backup": "^2.4.1",
+    "discord-backup": "^2.5.0",
     "discord-ytdl-core": "^5.0.1",
     "discord.js": "^12.5.1",
     "download": "^8.0.0",

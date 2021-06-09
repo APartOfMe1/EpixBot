@@ -124,3 +124,6 @@ handlers/Main/Error-Logs/*
 # Remove media files
 assets/downloads/midi/*
 assets/downloads/mp3/*
+
+# Other asset folders
+assets/backups/*
