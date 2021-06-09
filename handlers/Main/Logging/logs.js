@@ -15,6 +15,11 @@ module.exports = {
     },
 
     edited(oldmsg, newmsg) {
+        //Fix issue with link embeds triggering an edit
+        if (oldmsg.content === newmsg.content) {
+            return;
+        };
+
         if (verify(oldmsg)) {
             try {
                 const chnl = getChannel(oldmsg);
