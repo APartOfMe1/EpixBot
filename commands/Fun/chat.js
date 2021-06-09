@@ -20,7 +20,7 @@ module.exports = {
             chatters[msg.channel.id].push(msg.author.id); //Add the user to the array
 
             const startEmb = new Discord.MessageEmbed()
-                .setColor(config.errorchannel)
+                .setColor(config.embedColor)
                 .setAuthor(`${msg.guild.members.cache.get(msg.author.id).displayName} started a chat. Say hi!`, msg.author.avatarURL())
                 .setDescription("Other members can join the conversation by running the command themselves! Use the command again to leave the conversation")
                 .setFooter(`${config.name} | The conversation will automatically time out in 30 minutes`, client.user.avatarURL());
