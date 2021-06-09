@@ -52,7 +52,7 @@ module.exports = {
         var base = (process.platform === "win32") ? path.parse(midiPath).root : "/"; //Determine the platform and drive letter if on Windows
 
         checkDiskSpace(base).then((diskSpace) => {
-            if (diskSpace.free < 26843531856) { //Make sure we always have at least 25gb of space free
+            if (diskSpace.free < 10737418240) { //Make sure we always have at least 10gb of space free
                 return msg.channel.send("There are too many people converting files right now! Try again later");
             };
 
