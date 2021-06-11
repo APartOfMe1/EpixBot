@@ -10,6 +10,8 @@ module.exports = {
         //that really wasn't a great solution. In the end
         //I just went with this. You'll need to be using
         //pm2, nodemon, forever, etc for this to work.
-        process.exit(1);
+        setTimeout(() => {
+            process.exit(1);
+        }, 500); //Give the message a little time to send
     },
 };
