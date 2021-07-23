@@ -1,5 +1,6 @@
 const config = require("../../../config/config.json");
 const Discord = require("discord.js");
+const filter = require("../../Filter/filter.js");
 
 module.exports = {
     deleted(msg) {
@@ -139,20 +140,7 @@ function getChannel(msg) { //We've already done the verification, so we only nee
 };
 
 function filterMsg(message, type) {
-    var filteredMsg = message;
-
-    const banned = [ //The list of banned words/phrases
-        "@everyone",
-        "@here"
-    ];
-
-    for (let i = 0; i < filteredMsg.split(" ").length; i++) { //Check each word to see if it's included in the list of banned words/phrases
-        for (const item of banned) {
-            if (filteredMsg.includes(item)) {
-                filteredMsg = filteredMsg.replace(item, "<removed>");
-            };
-        };
-    };
+    var filteredMsg = filter(message);
 
     if (type === "edited" && filteredMsg.length > 850) {
         filteredMsg = filteredMsg.substring(0, 850) + `\n\n+${filteredMsg.length - 850} more characters`;

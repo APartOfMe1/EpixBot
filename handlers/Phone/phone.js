@@ -1,4 +1,5 @@
 const config = require("../../config/config.json");
+const filter = require("../Filter/filter.js");
 const EventEmitter = require('events');
 const emitter = new EventEmitter();
 
@@ -25,25 +26,6 @@ module.exports = {
             });
         };
     },
-};
-
-function filter(message) {
-    var filteredMsg = message;
-
-    const banned = [ //The list of banned words/phrases
-        "@everyone",
-        "@here"
-    ];
-
-    for (let i = 0; i < filteredMsg.split(" ").length; i++) { //Check each word to see if it's included in the list of banned words/phrases
-        for (const item of banned) {
-            if (filteredMsg.includes(item)) {
-                filteredMsg = filteredMsg.replace(item, "<removed>");
-            };
-        };
-    };
-
-    return filteredMsg;
 };
 
 module.exports.emitter = emitter;
