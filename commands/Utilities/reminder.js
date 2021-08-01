@@ -57,12 +57,24 @@ module.exports = {
 
         reminder = reminder.join(" ");
 
+        if (!time || !time.total) { //If the standard format wasn't specified, try to use the first argument for the time
+            time = getTime(args[0]);
+
+            reminder = reminder.replace(args[0], "").trim();
+        };
+
         if (!time || !time.total || !reminder) {
             return msg.channel.send(`I need both a time and message to set a reminder! To see available options, type \`${config.prefix}reminder help\``);
         };
 
-        if (!recurring || !recurring.total) { //Set the reminder param to false if it wasn't specified
-            recurring = false;
+        if (!recurring || !recurring.total) { //Try a secondary method of getting the recurring time if the standard format wasn't followed
+            recurring = getTime(args[1]);
+
+            if (!recurring || !recurring.total) { //Set the reminder param to false if it still wasn't specified
+                recurring = false;
+            } else {
+                reminder = reminder.replace(args[1], "").trim();
+            };
         };
 
         const uniqueId = genId(16);
@@ -139,6 +151,13 @@ module.exports = {
                 s: 0
             };
 
+            const fail = () => {
+                return {
+                    total: false,
+                    printed: false
+                };
+            };
+
             const hasTime = obj => { //Check if any value in the object is greater than zero
                 let count = 0;
 
@@ -151,6 +170,10 @@ module.exports = {
                 } else {
                     return true;
                 };
+            };
+
+            if (t.includes(":")) { //If the time includes a colon, assume it's an invalid input
+                return fail();
             };
 
             const printedTimes = [];
@@ -168,10 +191,7 @@ module.exports = {
             };
 
             if (!hasTime(totals)) { //Make sure we actually added a time at all
-                return {
-                    total: false,
-                    printed: false
-                };
+                return fail();
             };
 
             for (const i in totals) {
