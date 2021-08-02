@@ -38,9 +38,9 @@ client.on("ready", () => {
 
     setInterval(() => { //Increment the reminder counters
         if (allowDbUsage) {
-            reminders.incCounters(1000);
+            reminders.incCounters(5000);
         };
-    }, 1000);
+    }, 5000);
 });
 
 client.on('error', e => { //Send a message to the error channel when an error occurs with the client
