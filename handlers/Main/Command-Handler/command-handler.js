@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const fs = require('fs');
 const config = require("../../../config/config.json");
 const cmdCooldown = new Set();
 
@@ -39,7 +40,7 @@ module.exports = {
             return;
         };
 
-        if (cmd.category === "Administration" && !config.owners.includes(msg.author.id)) { //If the command is in the Administration category and the author isn't an owner, ignore it
+        if (cmd.category === "Administration" && !config.owners.includes(msg.author.id) && cmd.allowAllUsers !== true) { //If the command is in the Administration category and the author isn't an owner, ignore it
             return;
         };
 
@@ -78,7 +79,16 @@ module.exports = {
             });
 
             if (client.channels.cache.get(config.errorChannel)) {
-                client.channels.cache.get(config.errorChannel).send(`There was an error in ${msg.guild} (${msg.guild.id}) while running the command **${cmd.name}** \n\`\`\`js\n${e}\`\`\``); //Send an error to the log channel
+                const d = new Date(); //Get the date for the error file
+
+                const path = `./handlers/Main/Error-Logs/Log_${d.getMonth() + 1}-${d.getDate()}-${d.getFullYear()}_${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}.txt`; //Generate the file name
+
+                fs.writeFile(path, `There was an uncaught exception error. The details can be found below.\n\n${e.stack}`, function (e) {});
+
+                client.channels.cache.get(config.errorChannel).send(`There was an error in ${msg.guild} (${msg.guild.id}) while running the command **${cmd.name}** \n\`\`\`js\n${e}\`\`\``, {
+                    files: [path]
+                });
+
             };
         });
     }

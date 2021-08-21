@@ -5,8 +5,14 @@ module.exports = {
     incCounters(n) {
         client.db.reminders.every(user => { //Run through every user in the reminder database. This will likely be very slow with many users
             for (const reminder of user.reminders) {
+                if (!reminder || !reminder.id) {
+                    continue;
+                };
+
                 const index = user.reminders.map(i => { //Get the array index of the current reminder
-                    return i.id
+                    if (i && i.id) {
+                        return i.id;
+                    };
                 }).indexOf(reminder.id);
 
                 const count = reminder.count + parseInt(n);

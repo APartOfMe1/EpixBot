@@ -16,6 +16,8 @@ module.exports = {
         if (checkTime(client.db.credits.get(msg.author.id, "lastran"))) { //If the member is in the cooldown list, don't do anything. Otherwise add them to the cooldown
             var finalMsg = [];
 
+            var streak = client.db.credits.get(msg.author.id, "streak");
+
             client.db.credits.set(msg.author.id, false, "canspeedup");
 
             if (checkTime(client.db.credits.get(msg.author.id, "lastran")) === "overTime") { //Check if it's been more than 48 hours since the user last ran thet command
@@ -24,22 +26,26 @@ module.exports = {
                 finalMsg.push("It's been more than 48 hours since you last claimed your daily credits, so your streak got reset\n");
             };
 
+            client.db.credits.set(msg.author.id, streak, "oldstreak"); //Set the previous streak
+
             client.db.credits.inc(msg.author.id, "streak"); //Increment the streak counter by 1
+
+            streak = client.db.credits.get(msg.author.id, "streak"); //Set the new streak variable value
 
             client.db.credits.inc(msg.author.id, "totaldailies"); //Increment the global daily counter by 1
 
-            if (Number.isInteger(client.db.credits.get(msg.author.id, "streak") / 5) && client.db.credits.get(msg.author.id, "streak") !== 0) { //Give a bonus every 5 days
+            if (Number.isInteger(streak / 5) && streak !== 0) { //Give a bonus every 5 days
                 client.db.credits.set(msg.author.id, true, "canspeedup");
 
-                finalMsg.push(`Bonus! You've used daily **${client.db.credits.get(msg.author.id, "streak")}** times in a row, so you'll be able to use this command again in 15 hours instead of 24!\n`);
+                finalMsg.push(`Bonus! You've used daily **${streak}** times in a row, so you'll be able to use this command again in 15 hours instead of 24!\n`);
             };
 
-            if (Number.isInteger(client.db.credits.get(msg.author.id, "streak") / 100) && client.db.credits.get(msg.author.id, "streak") !== 0) { //Give a bonus 100 days
-                finalMsg.push(`Bonus! You've used daily for **${client.db.credits.get(msg.author.id, "streak") / 100}** days in a row! To celebrate, you get a bonus of 25,000 credits!\n`);
+            if (Number.isInteger(streak / 100) && streak !== 0) { //Give a bonus 100 days
+                finalMsg.push(`Bonus! You've used daily for **${streak}** days in a row! To celebrate, you get a bonus of 25,000 credits!\n`);
             };
 
-            if (Number.isInteger(client.db.credits.get(msg.author.id, "streak") / 365) && client.db.credits.get(msg.author.id, "streak") !== 0) { //Give a bonus every year
-                finalMsg.push(`Bonus! You've used daily for **${client.db.credits.get(msg.author.id, "streak") / 365}** year(s) in a row! To celebrate, you get a bonus of 75,000 credits!\n`);
+            if (Number.isInteger(streak / 365) && streak !== 0) { //Give a bonus every year
+                finalMsg.push(`Bonus! You've used daily for **${streak / 365}** year(s) in a row! To celebrate, you get a bonus of 75,000 credits!\n`);
             };
 
             finalMsg.push(givePoints(msg.author.id));

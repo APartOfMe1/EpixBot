@@ -10,6 +10,7 @@ module.exports = {
     examples: '`{prefix}some-name test1 test2`, `{prefix}some-name help`', //Some examples of valid messages. {prefix} will be replaced with the bot prefix in help messages
     aliases: ["some-other-name", "test"], //An array of command aliases. This should always be an array even if you only have one alias
     cooldown: 2500, //Command cooldown time in ms
+    allowAllUsers: false, //In commands under the Administration category, allow all users access. This will, for example, allow you to have a command that doesn't show up in the help menu
     //Obviously this is required as well, I just think it looks better at the bottom
     async execute(msg, args) {
         //Actual command code

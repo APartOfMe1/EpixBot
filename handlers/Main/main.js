@@ -20,6 +20,8 @@ client.phone = {
 client.on("ready", () => {
     startup.addCommands("./commands"); //Start the bootup process by loading available commands
 
+    client.db.settings.set("fixstreak", false); //Disallow streak fixing by default unless specified
+
     const dirArr = [
         path.resolve("./assets/downloads/mp3"),
         path.resolve("./assets/downloads/midi"),
