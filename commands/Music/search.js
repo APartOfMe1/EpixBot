@@ -61,7 +61,7 @@ module.exports = {
                 .setDescription(sortedResults.map(s => s.formatted).join("\n\n"));
 
             var searchMsg = await msg.channel.send({
-                embed: resultsEmb
+                embeds: [resultsEmb]
             });
 
             const filter = m => ((m.content > 0 && m.content < i + 1) || m.content.toLowerCase() === "cancel") && m.author.id === msg.author.id;
@@ -73,7 +73,7 @@ module.exports = {
             }).then(collected => {
                 if (collected.first().content.toLowerCase() === "cancel") {
                     return searchMsg.edit("Cancelled", {
-                        embed: null
+                        embeds: [null]
                     });
                 };
 
@@ -84,7 +84,7 @@ module.exports = {
                 searchMsg.delete(); //Delete the message
             }).catch(e => {
                 return searchMsg.edit("No answer was given", {
-                    embed: null
+                    embeds: [null]
                 });
             });
         });

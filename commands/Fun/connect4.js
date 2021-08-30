@@ -90,7 +90,7 @@ module.exports = {
                     .addField("Players", `\`\`\`Red: ${msg.guild.members.cache.get(msg.author.id).displayName} \nYellow: ${msg.guild.members.cache.get(user2.id).displayName} \n\nCurrent turn: ${msg.guild.members.cache.get(turnId).displayName}\`\`\``, true);
 
                 return c4Msg.edit("", {
-                    embed: tieEmb
+                    embeds: [tieEmb]
                 });
             };
 
@@ -106,7 +106,7 @@ module.exports = {
                     .addField("Players", `\`\`\`Red: ${msg.guild.members.cache.get(msg.author.id).displayName} \nYellow: ${msg.guild.members.cache.get(user2.id).displayName} \n\nCurrent turn: ${msg.guild.members.cache.get(turnId).displayName}\`\`\``, true);
 
                 return c4Msg.edit("", {
-                    embed: endEmb
+                    embeds: [endEmb]
                 });
             };
 
@@ -118,7 +118,7 @@ module.exports = {
                 .addField("Players", `\`\`\`Red: ${msg.guild.members.cache.get(msg.author.id).displayName} \nYellow: ${msg.guild.members.cache.get(user2.id).displayName} \n\nCurrent turn: ${msg.guild.members.cache.get(turnId).displayName}\`\`\``, true);
 
             c4Msg.edit("", {
-                embed: gameEmb
+                embeds: [gameEmb]
             });
 
             c4Msg.awaitReactions(filter, { //Wait for the current player to react
@@ -171,7 +171,7 @@ module.exports = {
                         .addField("Players", `\`\`\`Red: ${msg.guild.members.cache.get(msg.author.id).displayName} \nYellow: ${msg.guild.members.cache.get(user2.id).displayName} \n\nCurrent turn: ${msg.guild.members.cache.get(turnId).displayName}\`\`\``, true);
 
                     return c4Msg.edit("", {
-                        embed: endEmb
+                        embeds: [endEmb]
                     });
                 });
         };

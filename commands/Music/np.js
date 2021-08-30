@@ -22,7 +22,7 @@ module.exports = {
                 .addField("Current Volume", `${queue.volume}/100`, true);
 
             return msg.channel.send({
-                embed: embed,
+                embeds: [embed],
                 files: [{
                     attachment: nowPlaying.thumbnail,
                     name: 'thumbnail.png'

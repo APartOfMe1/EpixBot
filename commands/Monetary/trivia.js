@@ -96,7 +96,7 @@ module.exports = {
                 .setFooter(`Respond with ${numbers.join(", ")} to select an answer! You have 30 seconds`);
 
             msg.channel.send({
-                embed: questionEmbed
+                embeds: [questionEmbed]
             });
 
             const filter = m => m.author.id === msg.author.id && numbers.join(",").includes(m.content); //Create a filter that only accepts messages from the original author and that includes a valid answer
@@ -130,7 +130,7 @@ module.exports = {
                         .addField("Credits Earned", earnedCredits, true);
 
                     return msg.channel.send({
-                        embed: failEmbed
+                        embeds: [failEmbed]
                     });
                 };
             }).catch(e => {
@@ -151,7 +151,7 @@ module.exports = {
                     .addField("Credits Earned", earnedCredits, true);
 
                 return msg.channel.send({
-                    embed: timeEmbed
+                    embeds: [timeEmbed]
                 });
             });
         };
@@ -211,7 +211,7 @@ module.exports = {
                 .addField("ID/Category List", list.join("\n", true));
 
             return msg.channel.send({
-                embed: catEmb
+                embeds: [catEmb]
             });
         };
     },

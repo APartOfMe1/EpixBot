@@ -16,7 +16,7 @@ module.exports = {
                 msg.react("✅"); //React to the message to let the user know the message was successfully sent
 
                 return msg.author.send(helpMsg.msg, {
-                    embed: helpMsg.embed
+                    embeds: [helpMsg.embed]
                 });
             };
 
@@ -56,14 +56,14 @@ module.exports = {
             };
 
             return msg.channel.send({
-                embed: cmdEmb
+                embeds: [cmdEmb]
             });
         };
 
         var helpMsg = generateMsg();
 
         return msg.channel.send(helpMsg.msg, {
-            embed: helpMsg.embed
+            embeds: [helpMsg.embed]
         });
 
         function generateMsg() {
@@ -97,7 +97,7 @@ module.exports = {
 
             return {
                 msg: `To run a command in ${msg.guild}, use \`${config.prefix}<command>\`. For example, \`${config.prefix}ping\`\n\nYou can also use \`${config.prefix}help <command>\` for detailed command info\n`,
-                embed: emb
+                embeds: [emb]
             };
         };
     },

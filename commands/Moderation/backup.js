@@ -99,7 +99,7 @@ module.exports = {
             .addField("What Happens When a Backup is Restored?", `When restoring a backup, all server data will be wiped and replaced by the data in the backup. This includes messages, settings, channels, roles, pins, etc. Only the last ${maxMsgCount} messages in each channel are backed up. If there's anything you want to save, be sure to create a fresh backup before restoring`);
 
         return msg.channel.send({
-            embed: failEmb
+            embeds: [failEmb]
         });
     },
 };

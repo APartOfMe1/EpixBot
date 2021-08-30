@@ -25,7 +25,7 @@ module.exports = {
                                         .addField("Your Hand", player.hand.map(i => `${i.type} ${i.value}`).sort().join("\n"), true);
 
                                     client.users.cache.get(player.player).send({
-                                        embed: playerEmb
+                                        embeds: [playerEmb]
                                     });
                                 };
                             });
@@ -152,7 +152,7 @@ module.exports = {
         function updateGameMsg(gameMsg, content, game) {
             if (content.constructor && content.constructor.name === "MessageEmbed") {
                 gameMsg.edit("", {
-                    embed: content
+                    embeds: [content]
                 });
             } else {
                 gameMsg.edit(content);
@@ -181,7 +181,7 @@ module.exports = {
                 .addField("Last Played Card", `${game.curCard.type} ${game.curCard.value}`);
 
             var dm = await client.users.cache.get(game.players[game.turn].player).send({ //DM the current player with the embed
-                embed: playerEmb
+                embeds: [playerEmb]
             });
 
             const filter = m => //Filter messages to only accept valid plays

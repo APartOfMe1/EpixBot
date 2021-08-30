@@ -69,7 +69,7 @@ async function remindUser(info) {
         };
 
         const remindMsg = await client.users.cache.get(info.reminder.user).send({
-            embed: reminderEmb
+            embeds: [reminderEmb]
         });
 
         remindMsg.react("🛑");
@@ -111,7 +111,7 @@ async function remindUser(info) {
         };
 
         client.users.cache.get(info.reminder.user).send({
-            embed: reminderEmb
+            embeds: [reminderEmb]
         });
 
         if (!info.reminder.recurringInMs) { //Delete the reminder if it isn't set to recur

@@ -122,7 +122,7 @@ module.exports = {
                         .setFooter(config.name, client.user.avatarURL());
 
                     return battleMsg.edit("", {
-                        embed: gameEmb
+                        embeds: [gameEmb]
                     });
                 };
 
@@ -135,7 +135,7 @@ module.exports = {
                     .setFooter(config.name, client.user.avatarURL());
 
                 battleMsg.edit("", { //Edit the message to show the embed
-                    embed: gameEmb
+                    embeds: [gameEmb]
                 });
             } else { //This is all the same as above, just for the other player
                 turn = 1;
@@ -181,7 +181,7 @@ module.exports = {
                         .setFooter(config.name, client.user.avatarURL());;
 
                     return battleMsg.edit({
-                        embed: gameEmb
+                        embeds: [gameEmb]
                     });
                 };
 
@@ -194,7 +194,7 @@ module.exports = {
                     .setFooter(config.name, client.user.avatarURL());
 
                 battleMsg.edit({
-                    embed: gameEmb
+                    embeds: [gameEmb]
                 });
             };
 

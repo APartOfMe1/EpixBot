@@ -54,13 +54,13 @@ module.exports = {
                     .addField("Possible Outcomes", `A match is a row of 3 of the same icon. The match can be vertical, horizontal, or diagonal. \n\`\`\` 1 match:   ${credits * 1 * 2}\n 2 matches: ${credits * 2 * 2}\n 3 matches: ${credits * 3 * 2}\n 4 matches: ${credits * 4 * 2}\n 5 matches: ${credits * 5 * 2}\n 6 matches: ${credits * 6 * 2}\n 7 matches: ${credits * 7 * 2}\n 8 matches: ${credits * 8 * 2}\`\`\``, true);
 
                 slotMsg.edit({ //Edit the message with the spin
-                    embed: slotEmb
+                    embeds: [slotEmb]
                 });
 
                 slotEmb.addField("Results", checkWin(finalSpin, credits)); //Check to see if the spin is a winner
 
                 return slotMsg.edit({ //Edit the message with the final results
-                    embed: slotEmb
+                    embeds: [slotEmb]
                 });
             } else {
                 var slotEmb = new Discord.MessageEmbed()
@@ -70,7 +70,7 @@ module.exports = {
                     .addField("Possible Outcomes", `A match is a row of 3 of the same icon. The match can be vertical, horizontal, or diagonal. \n\`\`\` 1 match:   ${credits * 1 * 2}\n 2 matches: ${credits * 2 * 2}\n 3 matches: ${credits * 3 * 2}\n 4 matches: ${credits * 4 * 2}\n 5 matches: ${credits * 5 * 2}\n 6 matches: ${credits * 6 * 2}\n 7 matches: ${credits * 7 * 2}\n 8 matches: ${credits * 8 * 2}\`\`\``, true)
 
                 slotMsg.edit({ //Edit the message with a new spin
-                    embed: slotEmb
+                    embeds: [slotEmb]
                 });
             };
         }, 1500);

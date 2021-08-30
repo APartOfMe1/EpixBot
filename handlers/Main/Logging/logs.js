@@ -35,7 +35,7 @@ module.exports = {
                     .addField("New Message", `\`\`\`ini\n${filterMsg(differences[1], "edited")}\`\`\``, true);
 
                 return chnl.send({
-                    embed: editEmb
+                    embeds: [editEmb]
                 });
             } catch (error) { //Do nothing if the logchannel can't be reached. (If it was deleted or something)
                 return;

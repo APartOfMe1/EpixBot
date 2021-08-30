@@ -25,7 +25,7 @@ module.exports = {
                 .addField("I really just wanted the download...", `Use \`${config.prefix}bup downloads\` for both the original file and my edited one!`);
 
             return msg.channel.send({
-                embed: infoEmb
+                embeds: [infoEmb]
             });
         } else if (args[0] && args[0].toLowerCase() === "downloads") {
             return msg.channel.send("Bup!", {

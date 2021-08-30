@@ -85,7 +85,7 @@ module.exports = {
                 .addField("Players", `\`\`\`${msg.guild.members.cache.get(msg.author.id).displayName}: X\n${msg.guild.members.cache.get(user2.id).displayName}: O\n\nCurrent turn: ${turn}\`\`\``, true);
 
             tttMsg.edit("", {
-                embed: gameEmb
+                embeds: [gameEmb]
             });
 
             tttMsg.awaitReactions(filter, { //Wait for the current player to react
@@ -121,7 +121,7 @@ module.exports = {
                                 .addField("Players", `\`\`\`${msg.guild.members.cache.get(msg.author.id).displayName}: X\n${msg.guild.members.cache.get(user2.id).displayName}: O\n\nCurrent turn: ${turn}\`\`\``, true);
 
                             return tttMsg.edit("", {
-                                embed: tieEmb
+                                embeds: [tieEmb]
                             });
                         };
 
@@ -137,7 +137,7 @@ module.exports = {
                         .addField("Players", `\`\`\`${msg.guild.members.cache.get(msg.author.id).displayName}: X\n${msg.guild.members.cache.get(user2.id).displayName}: O\n\nCurrent turn: ${turn}\`\`\``, true);
 
                     return tttMsg.edit("", {
-                        embed: endEmb
+                        embeds: [endEmb]
                     });
                 })
                 .catch(e => { //If the current player ran out of time
@@ -164,7 +164,7 @@ module.exports = {
                         .addField("Players", `\`\`\`${msg.guild.members.cache.get(msg.author.id).displayName}: X\n${msg.guild.members.cache.get(user2.id).displayName}: O\n\nCurrent turn: ${turn}\`\`\``, true);
 
                     return tttMsg.edit("", {
-                        embed: timeEmb
+                        embeds: [timeEmb]
                     });
                 });
         };

@@ -40,7 +40,7 @@ module.exports = {
 
                         embed.setDescription(toSend);
 
-                        msg.channel.send(embed);
+                        msg.channel.send({embeds: [embed]});
                     };
 
                     return;
@@ -74,7 +74,7 @@ module.exports = {
 
                 embed.setDescription(toSend);
 
-                msg.channel.send(embed);
+                msg.channel.send({embeds: [embed]});
             };
 
             return;

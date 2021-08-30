@@ -75,7 +75,7 @@ module.exports = {
                 .setDescription(`There was an error in ${msg.guild} (${msg.guild.id}) while running the command **${cmd.name}** \n\`\`\`js\n${e}\`\`\``);
 
             msg.channel.send({ //Send an error if needed
-                embed: errEmb
+                embeds: [errEmb]
             });
 
             if (client.channels.cache.get(config.errorChannel)) {

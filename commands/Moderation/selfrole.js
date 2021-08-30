@@ -73,7 +73,7 @@ module.exports = {
                 .addField("Available Selfroles", `\`\`\`${roleList.join("\n")}\`\`\``);
 
             return msg.channel.send({
-                embed: failEmb
+                embeds: [failEmb]
             });
         };
     },

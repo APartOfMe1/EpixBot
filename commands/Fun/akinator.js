@@ -48,7 +48,7 @@ module.exports = {
                     .setFooter(`${config.name} | You have 45 seconds to make a choice`, client.user.avatarURL());
 
                 return gameMsg.edit("", { //Edit the message with the new embed
-                    embed: winEmb
+                    embeds: [winEmb]
                 });
             };
 
@@ -61,7 +61,7 @@ module.exports = {
                 .setFooter(`${config.name} | You have 45 seconds to make a choice`, client.user.avatarURL());
 
             gameMsg.edit("", { //Edit the message with the new embed
-                embed: gameEmb
+                embeds: [gameEmb]
             });
 
             const reactionFilter = (r, u) => { //Make sure the reaction emoji is valid and the reactor is the message author
@@ -115,7 +115,7 @@ module.exports = {
                 gameMsg.reactions.removeAll(); //Remove all reactions
 
                 return gameMsg.edit("The answer wasn't given in time!", {
-                    embed: null
+                    embeds: null
                 });
             })
         };

@@ -26,7 +26,7 @@ module.exports = {
                 .setFooter(`${config.name} | The conversation will automatically time out in 30 minutes`, client.user.avatarURL());
 
             msg.channel.send({
-                embed: startEmb
+                embeds: [startEmb]
             });
 
             return chat(log); //Actually start the chat
@@ -42,7 +42,7 @@ module.exports = {
                 .setFooter(config.name, client.user.avatarURL());
 
             msg.channel.send({
-                embed: joinEmb
+                embeds: [joinEmb]
             });
         };
 
@@ -79,7 +79,7 @@ module.exports = {
                         .setFooter(`${config.name} | Use "${client.db.settings.get(msg.guild.id).prefix}chat" to join/leave the conversation!`, client.user.avatarURL());
 
                     return msg.channel.send({
-                        embed: responseEmb
+                        embeds: [responseEmb]
                     });
                 });
             });
@@ -100,7 +100,7 @@ module.exports = {
 
             if (chatters[msg.channel.id].length > 0) { //Only send the message if there's another chatter. This is to avoid spam in the channel
                 return msg.channel.send({
-                    embed: leaveEmb
+                    embeds: [leaveEmb]
                 });
             };
 
@@ -118,7 +118,7 @@ module.exports = {
                 .setFooter(config.name, client.user.avatarURL());
 
             return msg.channel.send({
-                embed: endEmb
+                embeds: [endEmb]
             });
         };
     },

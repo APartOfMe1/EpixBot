@@ -297,7 +297,7 @@ module.exports = {
                             queueEmb.setThumbnail("attachment://thumbnail.png");
 
                             return msgChannel.send({
-                                embed: queueEmb,
+                                embeds: [queueEmb],
                                 files: [{
                                     attachment: res.thumbnail,
                                     name: 'thumbnail.png'
@@ -357,7 +357,7 @@ module.exports = {
                     return this.skip(voiceChannel.guild.id);
                 } else {
                     msgChannel.send({
-                        embed: playlistEmb
+                        embeds: [playlistEmb]
                     });
                 };
 
@@ -387,7 +387,7 @@ module.exports = {
                             return this.skip(voiceChannel.guild.id);
                         } else {
                             return msgChannel.send({
-                                embed: queueEmb
+                                embeds: [queueEmb]
                             });
                         };
                     };
@@ -420,7 +420,7 @@ module.exports = {
                                 return this.skip(voiceChannel.guild.id);
                             } else {
                                 return msgChannel.send({
-                                    embed: queueEmb
+                                    embeds: [queueEmb]
                                 });
                             };
                         };
@@ -560,7 +560,7 @@ async function playSong(song, voiceChannel, msgChannel, seek) {
 
         if (seek === 0) {
             msgChannel.send({
-                embed: playingEmb,
+                embeds: [playingEmb],
                 files: [{
                     attachment: song.thumbnail,
                     name: 'thumbnail.png'

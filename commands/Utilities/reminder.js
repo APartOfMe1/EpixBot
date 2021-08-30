@@ -29,7 +29,7 @@ module.exports = {
                 .addField("Cheat Cheat", "```y: years\nd: days\nh: hours\nm: minutes\ns: seconds```", true);
 
             return msg.channel.send({
-                embed: helpEmb
+                embeds: [helpEmb]
             });
         };
 
@@ -119,7 +119,7 @@ module.exports = {
         };
 
         return msg.channel.send({
-            embed: remindEmb
+            embeds: [remindEmb]
         });
 
         function genId(length) {

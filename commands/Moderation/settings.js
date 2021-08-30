@@ -31,7 +31,7 @@ module.exports = {
                         .addField("Selfroles", `\`\`\`${res.selfroles.join(", ")}\`\`\``);
 
                     return msg.channel.send({
-                        embed: viewembed
+                        embeds: [viewembed]
                     });
                 });
 
@@ -53,7 +53,7 @@ module.exports = {
                                 .addField("Prefix Settings", `To change the prefix, use \`${config.prefix}settings prefix <prefix>\`. For example: \`${config.prefix}settings prefix eb!\`\n\nNote that your prefix can't have spaces, and cannot be more than 5 characters long`);
 
                             msg.channel.send({
-                                embed: noPrefixEmb
+                                embeds: [noPrefixEmb]
                             });
 
                             break;

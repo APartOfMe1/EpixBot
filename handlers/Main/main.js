@@ -1,9 +1,14 @@
 //Load the dependencies
+const config = require("../../config/config.json");
 const Discord = require("discord.js");
-global.client = new Discord.Client();
+global.client = new Discord.Client({intents: [
+    Discord.Intents.FLAGS.GUILDS,
+    Discord.Intents.FLAGS.GUILD_MEMBERS,
+    Discord.Intents.FLAGS.GUILD_MESSAGES,
+    Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS
+]});
 const fs = require("fs");
 const path = require("path");
-const config = require("../../config/config.json");
 const startup = require("./Startup/startup.js");
 const cmdhandler = require("./Command-Handler/command-handler.js");
 const leveling = require("./Leveling/leveling.js");
