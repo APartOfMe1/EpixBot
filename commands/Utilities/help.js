@@ -62,8 +62,8 @@ module.exports = {
 
         var helpMsg = generateMsg();
 
-        return msg.channel.send(helpMsg.msg, {
-            embeds: [helpMsg.embed]
+        return msg.channel.send({
+            embeds: [helpMsg]
         });
 
         function generateMsg() {
@@ -74,6 +74,8 @@ module.exports = {
             var cmdList = new Discord.Collection(); //Create a blank list
 
             var emb = new Discord.MessageEmbed() //Set a new embed
+                .setTitle(config.name + " Help")
+                .setDescription(`To run a command in ${msg.guild}, use \`${config.prefix}<command>\`. For example, \`${config.prefix}ping\`\n\nYou can also use \`${config.prefix}help <command>\` for detailed command info`)
                 .setColor(config.embedColor)
                 .setFooter(config.name, client.user.avatarURL());
 
@@ -93,10 +95,7 @@ module.exports = {
 
             cmdList.map((category, name) => emb.addField(name, category.map(command => `\`${command.name}\``).join(", "), true)); //Add commands to the embed sorted by category
 
-            return {
-                msg: `To run a command in ${msg.guild}, use \`${config.prefix}<command>\`. For example, \`${config.prefix}ping\`\n\nYou can also use \`${config.prefix}help <command>\` for detailed command info\n`,
-                embed: emb
-            };
+            return emb;
         };
     },
 };
