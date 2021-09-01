@@ -38,7 +38,7 @@ module.exports = {
             .setColor(config.embedColor);
 
         return chnl.send({
-            embed
+            embeds: [embed]
         });
     },
 };

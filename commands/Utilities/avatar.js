@@ -5,6 +5,7 @@ module.exports = {
     name: 'avatar',
     description: 'Get a users avatar',
     category: 'Utilities',
+    aliases: ['pfp'],
     usage: '`{prefix}avatar` or `{prefix}avatar <nickname/username/@user/id>`',
     examples: '`{prefix}avatar @A part of me#0412` or `{prefix}avatar A part of me`',
     async execute(msg, args) {
@@ -17,8 +18,6 @@ module.exports = {
         if (!args[0]) { //If no user was given, default to the message author
             member = msg.author;
         };
-
-        var genMsg = await msg.channel.send("Generating avatar..."); //Send a temporary loading message
 
         const embed = new Discord.MessageEmbed() //Set an embed with the avatar as an attachment
             .setTitle(`${client.users.cache.get(member.id).username}'s avatar!`)
@@ -33,9 +32,9 @@ module.exports = {
                 format: 'png',
                 size: 1024
             }));
-
-        await genMsg.edit(``, { //Edit the message
-            embed
+            
+        await msg.channel.send({
+            embeds: [embed]
         });
     },
 };
