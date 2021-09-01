@@ -13,7 +13,7 @@ module.exports = {
             autorole: "Not set"
         });
 
-        if (!msg.guild.me.hasPermission('MANAGE_ROLES')) { //Send an error if the bot doesn't have permissions
+        if (!msg.guild.me.permissions.has(Discord.Permissions.MANAGE_ROLES)) { //Send an error if the bot doesn't have permissions
             return msg.channel.send("I don't have permissions to add roles to users! Please give me the \"Manage Roles\" permission and run the command again");
         };
 

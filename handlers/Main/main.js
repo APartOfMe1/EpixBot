@@ -100,7 +100,7 @@ client.on("botKick", guild => { //Delete settings when the bot is kicked from a 
     };
 });
 
-client.on("message", msg => {
+client.on("messageCreate", msg => {
     if (!allowDbUsage) {
         return;
     };
@@ -179,7 +179,7 @@ client.on("guildCreate", guild => {
         return;
     };
 
-    if (!guild.me.hasPermission('SEND_MESSAGES')) { //Make sure we can send messages at all in the server
+    if (!guild.me.permissions.has(Discord.Permissions.SEND_MESSAGES)) { //Make sure we can send messages at all in the server
         return;
     };
 

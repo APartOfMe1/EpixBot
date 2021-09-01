@@ -5,7 +5,7 @@ module.exports = {
     usage: '`{prefix}setpoints @user <number>` or `{prefix}setpoints <user id> <number>`',
     examples: '`{prefix}setpoints @A part of me#0412 5000` or `{prefix}setpoints 277137613775831050 5000`',
     async execute(msg, args) {
-        if (!msg.member.hasPermission('ADMINISTRATOR')) { //Make sure the user has permissions to use the command
+        if (!msg.member.permissions.has(Discord.Permissions.ADMINISTRATOR)) { //Make sure the user has permissions to use the command
             return msg.reply("You need administrator privledges to use this command!");
         };
 

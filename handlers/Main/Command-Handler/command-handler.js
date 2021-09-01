@@ -50,7 +50,7 @@ module.exports = {
             return msg.channel.send(`**${cmdName}** is disabled`);
         };
 
-        if (!msg.guild.me.hasPermission('SEND_MESSAGES')) { //Send an error if the bot doesn't have permissions
+        if (!msg.guild.me.permissions.has(Discord.Permissions.SEND_MESSAGES)) { //Send an error if the bot doesn't have permissions
             return msg.author.send(`I can't send messages in **${msg.guild.name}**! Make sure I have the correct permissions and try again`).catch(e => {
                 return;
             });

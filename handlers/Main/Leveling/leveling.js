@@ -26,7 +26,7 @@ module.exports = {
         const curLevel = Math.floor(0.1 * Math.sqrt(client.db.points.get(key, "points"))); //Get the users current level
 
         if (client.db.points.get(key, "level") < curLevel) { //Figure out if the user leveled up
-            if (msg.guild.me.hasPermission('SEND_MESSAGES')) { //Double check that we can send messages
+            if (msg.guild.me.permissions.has(Discord.Permissions.SEND_MESSAGES)) { //Double check that we can send messages
                 msg.reply(`Noice. you've leveled up to **${curLevel}**!`);
             };
 

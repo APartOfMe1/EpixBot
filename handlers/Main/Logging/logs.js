@@ -173,7 +173,7 @@ function verify(msg, type) {
         return false;
     };
 
-    if (!msg.guild.me.hasPermission('SEND_MESSAGES')) { //Send an error if the bot doesn't have permissions
+    if (!msg.guild.me.permissions.has(Discord.Permissions.SEND_MESSAGES)) { //Send an error if the bot doesn't have permissions
         return false;
     };
 

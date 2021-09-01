@@ -77,8 +77,7 @@ module.exports = {
                 .setColor(config.embedColor)
                 .setFooter(config.name, client.user.avatarURL());
 
-            commands.forEach(command => { //Run this for each command
-
+            commands.forEach(command => {
                 const category = cmdList.get(command.category); //Get the category of the command
 
                 if (command.category === "Administration" && !config.owners.includes(msg.author.id)) {
@@ -90,14 +89,13 @@ module.exports = {
                 } else {
                     cmdList.set(command.category, new Discord.Collection().set(command.name, command)); //If the category doesn't exist in the list, add both the category and command
                 };
-
             });
 
             cmdList.map((category, name) => emb.addField(name, category.map(command => `\`${command.name}\``).join(", "), true)); //Add commands to the embed sorted by category
 
             return {
                 msg: `To run a command in ${msg.guild}, use \`${config.prefix}<command>\`. For example, \`${config.prefix}ping\`\n\nYou can also use \`${config.prefix}help <command>\` for detailed command info\n`,
-                embeds: [emb]
+                embed: emb
             };
         };
     },

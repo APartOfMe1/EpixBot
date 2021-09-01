@@ -15,11 +15,11 @@ module.exports = {
     usage: '`{prefix}backup create` or `{prefix}backup restore <id>`',
     examples: '`{prefix}backup restore 730448128594587340`',
     async execute(msg, args) {
-        if (!msg.member.hasPermission('ADMINISTRATOR')) { //Send an error if the author doesn't have permission
+        if (!msg.member.permissions.has(Discord.Permissions.ADMINISTRATOR)) { //Send an error if the author doesn't have permission
             return msg.channel.send("You need admin permissions to create or restore server backups");
         };
 
-        if (!msg.guild.me.hasPermission('ADMINISTRATOR')) { //Send an error if the bot doesn't have permissions
+        if (!msg.guild.me.permissions.has(Discord.Permissions.ADMINISTRATOR)) { //Send an error if the bot doesn't have permissions
             return msg.channel.send("I need admin permissions to create/restore backups!");
         };
 

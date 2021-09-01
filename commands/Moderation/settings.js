@@ -10,7 +10,7 @@ module.exports = {
     usage: '`{prefix}settings <setting> <value>`',
     examples: 'Use `{prefix}settings` for more detailed information',
     async execute(msg, args) {
-        if (!msg.member.hasPermission('MANAGE_GUILD')) { //Make sure the author can manage the guild
+        if (!msg.member.permissions.has(Discord.Permissions.MANAGE_GUILD)) { //Make sure the author can manage the guild
             return msg.reply("Sorry! You need the manage server permission to change the settings!");
         };
 

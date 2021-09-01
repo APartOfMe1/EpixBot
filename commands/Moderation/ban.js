@@ -9,7 +9,7 @@ module.exports = {
   examples: '`{prefix}ban @A part of me#0412 annoying` or `{prefix}ban 277137613775831050 spammed messages`',
   async execute(msg, args) {
 
-    if (!msg.member.hasPermission('BAN_MEMBERS')) { //Send an error if the author doesn't have permission to ban members
+    if (!msg.member.permissions.has(Discord.Permissions.BAN_MEMBERS)) { //Send an error if the author doesn't have permission to ban members
       return msg.reply("Sorry! You don't have permission to ban users");
     };
 

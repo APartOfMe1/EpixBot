@@ -6,11 +6,11 @@ module.exports = {
   usage: '`{prefix}prune <number>`',
   examples: '`{prefix}prune 15`',
   async execute(msg, args) {
-    if (!msg.member.hasPermission('MANAGE_MESSAGES')) { //If the author can't delete messages, send an error
+    if (!msg.member.permissions.has(Discord.Permissions.MANAGE_MESSAGES)) { //If the author can't delete messages, send an error
       return msg.reply("Sorry! You can't prune messages");
     };
 
-    if (!msg.guild.me.hasPermission('MANAGE_MESSAGES ')) { //Send an error if the bot doesn't have permissions
+    if (!msg.guild.me.permissions.has(Discord.Permissions.MANAGE_MESSAGES)) { //Send an error if the bot doesn't have permissions
       return msg.author.send(`I can't delete messages! I need the \`Manage Messages\` permission`);
     };
 

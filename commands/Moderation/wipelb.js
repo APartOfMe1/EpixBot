@@ -3,7 +3,7 @@ module.exports = {
     description: 'Completely reset everyone\'s points and the leaderboard itself. This can help if the leaderboard stops working correctly',
     category: 'Moderation',
     async execute(msg, args) {
-        if (!msg.member.hasPermission('ADMINISTRATOR')) { //Make sure the author has permissions to run the command
+        if (!msg.member.permissions.has(Discord.Permissions.ADMINISTRATOR)) { //Make sure the author has permissions to run the command
             return msg.reply("You need administrator privledges to use this command!");
         };
 

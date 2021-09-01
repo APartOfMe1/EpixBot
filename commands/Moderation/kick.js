@@ -9,7 +9,7 @@ module.exports = {
   examples: '`{prefix}kick @A part of me#0412 spammed messages` or `{prefix}kick 277137613775831050 broke rules`',
   async execute(msg, args) {
 
-    if (!msg.member.hasPermission('KICK_MEMBERS')) { //Send an error if the author doesn't have permission to kick members
+    if (!msg.member.permissions.has(Discord.Permissions.KICK_MEMBERS)) { //Send an error if the author doesn't have permission to kick members
       return msg.reply("Sorry! You don't have permission to kick users");
     };
 
