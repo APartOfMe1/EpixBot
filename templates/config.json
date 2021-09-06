@@ -5,6 +5,7 @@
         "embedColor": "",
         "owners": [],
         "startupNotification": true,
+        "debugMode": false,
         "invite": "",
         "supportLink": "",
         "errorChannel": "",

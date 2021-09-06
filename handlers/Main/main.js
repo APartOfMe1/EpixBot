@@ -55,16 +55,28 @@ client.on('error', e => { //Send a message to the error channel when an error oc
     if (client.channels.cache.get(config.errorChannel)) {
         client.channels.cache.get(config.errorChannel).send(`There was an error with the client\n\`\`\`js\n${e}\`\`\``);
     };
+
+    if (config.debugMode) { //Log errors to the console if needed
+        console.log(e);
+    };
 });
 
 client.on('unhandledRejection', e => {
     if (client.channels.cache.get(config.errorChannel)) {
         client.channels.cache.get(config.errorChannel).send(`There was an unhandled rejection error\n\`\`\`js\n${e}\`\`\``);
     };
+
+    if (config.debugMode) { //Log errors to the console if needed
+        console.log(e);
+    };
 });
 
 process.on('uncaughtException', err => {
     allowDbUsage = false; //Disallow potential database reads/writes to avoid possible corruption
+
+    if (config.debugMode) { //Log errors to the console if needed
+        console.log(err);
+    };
 
     const d = new Date(); //Get the date for the error file
 

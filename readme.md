@@ -21,6 +21,8 @@ An example config file can be found in `/templates/config.json`. Before the bot 
 
 The other fields are optional, but it's recommended to fill in everything except `geniuskey` unless using music commands, in which case a genius lyrics api key is required for lyric searching.
 
+The `debugMode` field will log errors to the console if set to `true`.
+
 For emojis to work, you'll need to edit `/assets/emojis/emojis.json`. The emoji files can be found in `/assets/emojis/emoji-files`. Once uploaded, simply type the emoji name into discord prefaced with a `\`, and copy the result to the emojis.json file. For example: `\loading` would give you something similar to `<a:loading:605953089333231626>`.
 
 In order to use the bup command, you'll need [TiMidity++](https://sourceforge.net/projects/timidity/) and [FFmpeg](https://ffmpeg.org/). Be sure both are able to be used on the command line globally (on Windows this means adding them to your PATH).

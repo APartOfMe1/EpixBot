@@ -78,6 +78,10 @@ module.exports = {
                 embeds: [errEmb]
             });
 
+            if (config.debugMode) { //Log errors to the console if needed
+                console.log(e);
+            };
+
             if (client.channels.cache.get(config.errorChannel)) {
                 const d = new Date(); //Get the date for the error file
 
