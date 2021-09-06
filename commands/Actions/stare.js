@@ -22,7 +22,8 @@ module.exports = {
 
         let gif = `${dir}/${gifArr[Math.floor(Math.random() * gifArr.length)]}`; //Choose a random image from the list and send it as an attachment
 
-        msg.channel.send(`**${auth}** stared at **${nick}**!`, {
+        msg.channel.send({
+            content: `**${auth}** stared at **${nick}**!`,
             files: [gif]
         });
     },
