@@ -1,3 +1,5 @@
+const Discord = require("discord.js");
+
 module.exports = {
   name: 'prune',
   description: 'Bulk delete messages',

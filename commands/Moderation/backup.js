@@ -42,7 +42,8 @@ module.exports = {
                         maxMessagesPerChannel: maxMsgCount,
                         saveImages: "base64"
                     }).then((backupData) => {
-                        msg.author.send(`The backup for **${msg.guild}** was successfully created! To restore it, you'll need to run \`${config.prefix}backup restore ${backupData.id}\`\n\nYour backup id: **${backupData.id}**\n\nThe backup file is included below. It's recommended to store this file somewhere safe in case the remote copy ever gets deleted. You can also share this file with others to let them have a copy of the server.`, {
+                        msg.author.send({
+                            content: `The backup for **${msg.guild}** was successfully created! To restore it, you'll need to run \`${config.prefix}backup restore ${backupData.id}\`\n\nYour backup id: **${backupData.id}**\n\nThe backup file is included below. It's recommended to store this file somewhere safe in case the remote copy ever gets deleted. You can also share this file with others to let them have a copy of the server.`,
                             files: [
                                 path.resolve(`./assets/backups/${backupData.id}.json`)
                             ]

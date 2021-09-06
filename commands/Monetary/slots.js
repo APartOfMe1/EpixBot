@@ -60,6 +60,7 @@ module.exports = {
                 slotEmb.addField("Results", checkWin(finalSpin, credits)); //Check to see if the spin is a winner
 
                 return slotMsg.edit({ //Edit the message with the final results
+                    content: null,
                     embeds: [slotEmb]
                 });
             } else {

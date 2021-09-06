@@ -50,10 +50,14 @@ module.exports = {
                 setTimeout(function () {
                     final.delete();
 
-                    return msg.channel.send(attachment);
+                    return msg.channel.send({
+                        files: [attachment]
+                    });
                 }, 6000);
             } else {
-                return msg.channel.send(attachment); //Send the image if the message isn't too long
+                return msg.channel.send({ //Send the image if the message isn't too long
+                    files: [attachment]
+                });
             };
         } else { //If there was a mention
             const getavatar = await user.displayAvatarURL({ //Get the avatar of the mentioned user
@@ -77,7 +81,6 @@ module.exports = {
             let pixels = imgData.data; //Get the image data again idk
 
             for (var i = 0; i < pixels.length; i += 4) { //Remove color from the image
-
                 let lightness = parseInt((pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3);
 
                 pixels[i] = lightness;
@@ -85,7 +88,6 @@ module.exports = {
                 pixels[i + 1] = lightness;
 
                 pixels[i + 2] = lightness;
-
             };
 
             img.putImageData(imgData, 0, 0); //Set the now-colorless image
@@ -96,7 +98,9 @@ module.exports = {
 
             var attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'rip.png'); //Set the new image as an aattachment
 
-            return msg.channel.send(attachment); //Send it
+            return msg.channel.send({
+                files: [attachment]
+            });
         };
     },
 };
