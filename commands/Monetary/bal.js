@@ -44,7 +44,7 @@ module.exports = {
             .addField("All-Time Stats", `\`\`\`Total times daily was used: ${client.db.credits.get(user.id, "totaldailies")} \n\nAll-time credits: ${client.db.credits.get(user.id, "totalcredits")}\`\`\``);
 
         return msg.channel.send({
-            embed
+            embeds: [embed]
         });
     },
 };

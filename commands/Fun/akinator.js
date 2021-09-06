@@ -21,9 +21,9 @@ module.exports = {
 
         const gameMsg = await msg.channel.send("Starting game...");
 
-        reactions.forEach(r => { //React in order
-            gameMsg.react(r);
-        });
+        for (const r of reactions) {
+            await gameMsg.react(r);
+        };
 
         const aki = new Aki("en");
 
@@ -47,7 +47,8 @@ module.exports = {
                     .addField("Total Guesses", `\`\`\`${aki.currentStep}\`\`\``, true)
                     .setFooter(`${config.name} | You have 45 seconds to make a choice`, client.user.avatarURL());
 
-                return gameMsg.edit("", { //Edit the message with the new embed
+                return gameMsg.edit({ //Edit the message with the new embed
+                    content: null,
                     embeds: [winEmb]
                 });
             };
@@ -56,19 +57,20 @@ module.exports = {
                 .setColor(config.embedColor)
                 .setTitle(`Guess #${aki.currentStep}`)
                 .addField("Question", aki.question, true)
-                .addField("Progress", aki.progress, true)
+                .addField("Progress", aki.progress.toString(), true)
                 .addField("Reactions", `Yes: ✅\nNo: ❌\nDon't Know: 🤷‍♀️\nProbably: 👍\nProbably Not: 👎`)
                 .setFooter(`${config.name} | You have 45 seconds to make a choice`, client.user.avatarURL());
 
-            gameMsg.edit("", { //Edit the message with the new embed
+            gameMsg.edit({ //Edit the message with the new embed
+                content: null,
                 embeds: [gameEmb]
             });
 
-            const reactionFilter = (r, u) => { //Make sure the reaction emoji is valid and the reactor is the message author
-                return reactions.includes(r.emoji.name) && u.id === msg.author.id;
-            };
-
-            gameMsg.awaitReactions(reactionFilter, {
+            //Make sure the reaction emoji is valid and the reactor is the message author
+            const reactionFilter = (r, u) => reactions.includes(r.emoji.name) && u.id === msg.author.id;
+            
+            gameMsg.awaitReactions({
+                reactionFilter,
                 max: 1,
                 time: 45000,
                 errors: ["time"]
@@ -114,8 +116,9 @@ module.exports = {
             }).catch(e => {
                 gameMsg.reactions.removeAll(); //Remove all reactions
 
-                return gameMsg.edit("The answer wasn't given in time!", {
-                    embeds: null
+                return gameMsg.edit({
+                    content: "The answer wasn't given in time!",
+                    embeds: []
                 });
             })
         };

@@ -116,12 +116,13 @@ module.exports = {
                         .setTitle("Battle")
                         .setDescription(`**${user1.displayName}** won the battle!`)
                         .setColor(config.embedColor)
-                        .addField("Game", first3.slice(Math.max(first3.length - 3, 0)))
+                        .addField("Game", first3.slice(Math.max(first3.length - 3, 0)).join("\n"))
                         .addField(`${user1.displayName}'s Health`, `${health1}/100`, true)
                         .addField(`${msg.guild.members.cache.get(user2.id).displayName}'s Health`, `${health2}/100`, true)
                         .setFooter(config.name, client.user.avatarURL());
 
-                    return battleMsg.edit("", {
+                    return battleMsg.edit({
+                        content: null,
                         embeds: [gameEmb]
                     });
                 };
@@ -129,12 +130,13 @@ module.exports = {
                 var gameEmb = new Discord.MessageEmbed()
                     .setTitle("Battle")
                     .setColor(config.embedColor)
-                    .addField("Game", first3.slice(Math.max(first3.length - 3, 0))) //Get the last 3 items in the array. This lets the messages have a nice scrolling effect
+                    .addField("Game", first3.slice(Math.max(first3.length - 3, 0)).join("\n")) //Get the last 3 items in the array. This lets the messages have a nice scrolling effect
                     .addField(`${user1.displayName}'s Health`, `${health1}/100`, true)
                     .addField(`${msg.guild.members.cache.get(user2.id).displayName}'s Health`, `${health2}/100`, true)
                     .setFooter(config.name, client.user.avatarURL());
 
-                battleMsg.edit("", { //Edit the message to show the embed
+                battleMsg.edit({ //Edit the message to show the embed
+                    content: null,
                     embeds: [gameEmb]
                 });
             } else { //This is all the same as above, just for the other player
@@ -175,7 +177,7 @@ module.exports = {
                         .setTitle("Battle")
                         .setDescription(`**${msg.guild.members.cache.get(user2.id).displayName}** won the battle!`)
                         .setColor(config.embedColor)
-                        .addField("Game", first3.slice(Math.max(first3.length - 3, 0)))
+                        .addField("Game", first3.slice(Math.max(first3.length - 3, 0)).join("\n"))
                         .addField(`${user1.displayName}'s Health`, `${health1}/100`, true)
                         .addField(`${msg.guild.members.cache.get(user2.id).displayName}'s Health`, `${health2}/100`, true)
                         .setFooter(config.name, client.user.avatarURL());;
@@ -188,7 +190,7 @@ module.exports = {
                 var gameEmb = new Discord.MessageEmbed()
                     .setTitle("Battle")
                     .setColor(config.embedColor)
-                    .addField("Game", first3.slice(Math.max(first3.length - 3, 0)))
+                    .addField("Game", first3.slice(Math.max(first3.length - 3, 0)).join("\n"))
                     .addField(`${user1.displayName}'s Health`, `${health1}/100`, true)
                     .addField(`${msg.guild.members.cache.get(user2.id).displayName}'s Health`, `${health2}/100`, true)
                     .setFooter(config.name, client.user.avatarURL());
@@ -197,7 +199,6 @@ module.exports = {
                     embeds: [gameEmb]
                 });
             };
-
         }, 2000);
     },
 };

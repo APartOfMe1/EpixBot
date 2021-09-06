@@ -49,7 +49,8 @@ module.exports = {
         function chat(log) {
             const filter = m => m.content && chatters[m.channel.id].includes(m.author.id);
 
-            const collector = msg.channel.createMessageCollector(filter, {
+            const collector = msg.channel.createMessageCollector({
+                filter,
                 time: 1800000
             });
 
@@ -66,12 +67,10 @@ module.exports = {
 
                 log.push(m.content); //Add the message to the log
 
-                msg.channel.startTyping(); //Start typing to make the bot seem more humanlike
+                msg.channel.sendTyping(); //Start typing to make the bot seem more humanlike
 
                 cleverbot(m.content, log.slice(0, -1)).then(response => { //Clever the bot
                     log.push(response); //Log the response
-
-                    msg.channel.stopTyping(); //Stop typing if discord didn't automatically do that
 
                     const responseEmb = new Discord.MessageEmbed()
                         .setColor(config.embedColor)

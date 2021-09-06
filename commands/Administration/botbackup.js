@@ -37,14 +37,16 @@ module.exports = {
 
                 const filter = m => m.author.id === msg.author.id && m.content === code; //Make sure the message comes from the author and includes the code we generated earlier
 
-                msg.channel.awaitMessages(filter, {
+                msg.channel.awaitMessages({
+                    filter, 
                     max: 1,
                     time: 60000,
                     errors: ['time']
                 }).then(async collected => {
                     loadingMsg.edit(`${newContent}\n\n${emojis.loading} Uploading file...`);
-
-                    await msg.author.send("Here's your backup. It contains the bot token and/or sensitive user data. Don't share it with anyone!", {
+                    
+                    await msg.author.send({
+                        content: "Here's your backup. It contains the bot token and/or sensitive user data. Don't share it with anyone!",
                         files: [res.path]
                     }).then(sentMsg => {
                         return loadingMsg.edit(`${newContent}\n\n(Message sent)`);
