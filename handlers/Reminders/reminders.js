@@ -3,7 +3,10 @@ const config = require("../../config/config.json");
 
 module.exports = {
     incCounters(n) {
-        client.db.reminders.every(user => { //Run through every user in the reminder database. This will likely be very slow with many users
+        //Run through every user in the reminder database. This will likely be very slow with many users
+        const remindArr = client.db.reminders.array();
+
+        for (const user of remindArr) {
             for (const reminder of user.reminders) {
                 if (!reminder || !reminder.id) {
                     continue;
@@ -41,7 +44,7 @@ module.exports = {
                     });
                 };
             };
-        });
+        };
     },
 };
 
@@ -68,15 +71,24 @@ async function remindUser(info) {
             reminderEmb.setDescription(nagMsg);
         };
 
-        const remindMsg = await client.users.cache.get(info.reminder.user).send({
-            embeds: [reminderEmb]
-        });
+        //It's very possible for the user to not be in the bots cache. Make sure we don't error out if so
+        var remindMsg;
+
+        try {
+            remindMsg = await client.users.cache.get(info.reminder.user).send({
+                embeds: [reminderEmb]
+            });
+        } catch (error) {
+            //This *should* keep trying to dm the user until it actually succeeds
+            return;
+        };
 
         remindMsg.react("🛑");
 
         const filter = (reaction, user) => reaction.emoji.name === "🛑" && user.id === info.reminder.user;
 
-        remindMsg.awaitReactions(filter, {
+        remindMsg.awaitReactions({
+            filter,
             max: 1,
             time: 3600000,
             errors: ['time']
@@ -110,9 +122,12 @@ async function remindUser(info) {
             reminderEmb.setDescription(`You asked me to remind you of: \`${info.reminder.msg}\``);
         };
 
-        client.users.cache.get(info.reminder.user).send({
-            embeds: [reminderEmb]
-        });
+        //It's very possible for the user to not be in the bots cache. Make sure we don't error out if so
+        try {
+            client.users.cache.get(info.reminder.user).send({
+                embeds: [reminderEmb]
+            });
+        } catch (error) { };
 
         if (!info.reminder.recurringInMs) { //Delete the reminder if it isn't set to recur
             client.db.reminders.remove(info.reminder.user, i => i.id === info.reminder.id, "reminders");

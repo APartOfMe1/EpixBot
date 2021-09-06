@@ -71,7 +71,7 @@ module.exports = {
             recurring = getTime(args[1]);
 
             if (!recurring || !recurring.total) { //Set the reminder param to false if it still wasn't specified
-                recurring = false;
+                recurring.total = false;
             } else {
                 reminder = reminder.replace(args[1], "").trim();
             };
@@ -107,7 +107,7 @@ module.exports = {
             .addField("Time", replaceTime(time.printed.join(" ")), true);
 
         if (!recurring.printed) {
-            remindEmb.addField("Recurring", false, true);
+            remindEmb.addField("Recurring", "false", true);
         } else {
             remindEmb.addField("Recurring", replaceTime(recurring.printed.join(" ")), true);
         };
