@@ -135,7 +135,7 @@ module.exports = {
         const song = queue[guildId].songs[n]; //Get the info for the requested song
 
         if (song.filePath) {
-            fs.unlink(song.filePath, function (err) {});
+            fs.unlink(song.filePath, function (err) { });
         };
 
         queue[guildId].songs.splice(n, 1); //Remove the song
@@ -193,7 +193,7 @@ module.exports = {
         if (queueArr.length) {
             for (const song of queueArr) {
                 if (song.filePath) {
-                    fs.unlink(song.filePath, function (err) {});
+                    fs.unlink(song.filePath, function (err) { });
                 };
 
                 queue[guildId].songs.splice(queue[guildId].songs.indexOf(song), 1)
@@ -439,7 +439,7 @@ function deleteQueue(id) {
     if (queue[id] && queue[id].songs) { //Remove all local files
         for (const song of queue[id].songs) {
             if (song.filePath) {
-                fs.unlink(song.filePath, function (err) {});
+                fs.unlink(song.filePath, function (err) { });
             };
         };
     };
@@ -589,7 +589,7 @@ async function playSong(song, voiceChannel, msgChannel, seek) {
 
             if (!queue[voiceChannel.guild.id].repeatMode) { //Check if repeatMode is on for the server
                 if (queue[voiceChannel.guild.id].songs[0].filePath) {
-                    fs.unlink(queue[voiceChannel.guild.id].songs[0].filePath, function (err) {});
+                    fs.unlink(queue[voiceChannel.guild.id].songs[0].filePath, function (err) { });
                 };
 
                 queue[voiceChannel.guild.id].songs.shift(); //Remove the first item from the queue
@@ -604,6 +604,12 @@ async function playSong(song, voiceChannel, msgChannel, seek) {
 
                 return voiceChannel.leave();
             };
+        });
+
+        connection.on("disconnect", () => {
+            msgChannel.send("I finished playing the current queue!");
+
+            deleteQueue(voiceChannel.guild.id);
         });
     });
 };
