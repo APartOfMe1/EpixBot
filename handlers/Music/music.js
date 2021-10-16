@@ -607,7 +607,7 @@ async function playSong(song, voiceChannel, msgChannel, seek) {
         });
 
         connection.on("disconnect", () => {
-            msgChannel.send("I finished playing the current queue!");
+            msgChannel.send("I was disconnected from the channel, so I cleared the queue");
 
             deleteQueue(voiceChannel.guild.id);
         });
