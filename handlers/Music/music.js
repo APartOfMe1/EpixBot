@@ -1,9 +1,11 @@
 const Discord = require('discord.js');
+const dVoice = require('@discordjs/voice');
 const ytdl = require('discord-ytdl-core');
 const ytdlCore = require('ytdl-core');
 const ytpl = require('ytpl');
 const ytsr = require('ytsr');
-const fs = require("fs");
+const fs = require('fs');
+const path = require('path');
 const urlManager = require("./Url-Parser/url-parser.js");
 const config = require("../../config/config.json");
 const queue = {};
@@ -135,7 +137,7 @@ module.exports = {
         const song = queue[guildId].songs[n]; //Get the info for the requested song
 
         if (song.filePath) {
-            fs.unlink(song.filePath, function (err) {});
+            fs.unlink(song.filePath, function (err) { });
         };
 
         queue[guildId].songs.splice(n, 1); //Remove the song
@@ -193,7 +195,7 @@ module.exports = {
         if (queueArr.length) {
             for (const song of queueArr) {
                 if (song.filePath) {
-                    fs.unlink(song.filePath, function (err) {});
+                    fs.unlink(song.filePath, function (err) { });
                 };
 
                 queue[guildId].songs.splice(queue[guildId].songs.indexOf(song), 1)
@@ -271,7 +273,6 @@ module.exports = {
                 volume: 50,
                 repeatMode: false,
                 paused: false,
-                channel: null,
                 songs: []
             };
         };
@@ -425,9 +426,11 @@ module.exports = {
                             };
                         };
                     }).catch(err => {
-                        return msgChannel.send(err);
+                        console.log(err)
+                        return msgChannel.send("An error occured while searching");
                     });
                 }).catch(e => {
+                    console.log(e)
                     return msgChannel.send("An error occured while searching");
                 });
             });
@@ -439,7 +442,7 @@ function deleteQueue(id) {
     if (queue[id] && queue[id].songs) { //Remove all local files
         for (const song of queue[id].songs) {
             if (song.filePath) {
-                fs.unlink(song.filePath, function (err) {});
+                fs.unlink(song.filePath, function (err) { });
             };
         };
     };
@@ -506,105 +509,117 @@ function addToQueue(id, addToTop, queueTime, info) {
         .setThumbnail(info.thumbnail)
         .addField("Duration", info.duration, true)
         .addField("Channel", info.channel, true)
-        .addField("Views", info.views, true);
+        .addField("Views", toString(info.views), true);
 
     return Promise.resolve(queueEmb);
 };
 
 async function playSong(song, voiceChannel, msgChannel, seek) {
-    voiceChannel.join().then(async connection => {
-        queue[voiceChannel.guild.id].channel = connection; //Store the info to use in other functions
+    const connection = dVoice.joinVoiceChannel({
+        channelId: voiceChannel.id,
+        guildId: voiceChannel.guild.id,
+        adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+    });
 
-        queue[voiceChannel.guild.id].seekTime = 0; //Reset the seeking time
+    queue[voiceChannel.guild.id].seekTime = 0; //Reset the seeking time
 
-        if (!seek) { //If we don't have a time to seek to, start at the beginning
-            seek = 0;
+    if (!seek) { //If we don't have a time to seek to, start at the beginning
+        seek = 0;
+    };
+
+    if (song.filePath) {
+        const songStream = fs.createReadStream(song.filePath);
+
+        var stream = dVoice.createAudioResource(ytdl.arbitraryStream(songStream, {
+            filter: 'audioonly',
+            fmt: "mp3",
+            opusEncoded: true,
+            highWaterMark: 1 << 25,
+            seek: seek / 1000
+        }), {
+            inlineVolume: true
+        });
+    } else {
+        var pipe = ytdl(song.url, {
+            filter: 'audioonly',
+            opusEncoded: true,
+            highWaterMark: 1 << 25,
+            seek: seek / 1000
+        }).pipe(fs.createWriteStream(path.resolve("./assets/downloads/mp3")));
+
+        var stream = dVoice.createAudioResource(pipe, {
+            inlineVolume: true
+        });
+    };
+
+    stream.volume.setVolume(queue[voiceChannel.guild.id].volume * 2 / 100);
+
+    const dispatcher = dVoice.createAudioPlayer({
+        behaviors: {
+            noSubscriber: dVoice.NoSubscriberBehavior.Pause,
+        },
+    }).play(stream);
+
+    connection.subscribe(dispatcher);
+
+    queue[voiceChannel.guild.id].seekTime = seek; //Set the additional seek time
+
+    const playingEmb = new Discord.MessageEmbed()
+        .setColor(config.embedColor)
+        .setAuthor("Now Playing")
+        .setThumbnail("attachment://thumbnail.png")
+        .setTitle(song.title)
+        .setURL(song.url)
+        .addField("Duration", song.duration, true)
+        .addField("Channel", song.channel, true)
+        .addField("Requested By", `${song.requestedBy.username}#${song.requestedBy.discriminator}`, true);
+
+    if (seek === 0) {
+        msgChannel.send({
+            embeds: [playingEmb],
+            files: [{
+                attachment: song.thumbnail,
+                name: 'thumbnail.png'
+            }]
+        });
+    };
+
+    dispatcher.on('finish', () => {
+        if (!queue[voiceChannel.guild.id]) { //Check if there's a queue for the guild at all
+            msgChannel.send("I finished playing the current queue!");
+
+            return voiceChannel.leave();
         };
 
-        if (song.filePath) {
-            const songStream = fs.createReadStream(song.filePath);
+        if (queue[voiceChannel.guild.id] && queue[voiceChannel.guild.id].channel !== null && queue[voiceChannel.guild.id].channel.channel.members.size < 2) {
+            msgChannel.send("I can't play music by myself, so I left the voice channel");
 
-            var stream = ytdl.arbitraryStream(songStream, {
-                filter: 'audioonly',
-                opusEncoded: true,
-                highWaterMark: 1 << 25,
-                seek: seek / 1000
-            });
+            deleteQueue(voiceChannel.guild.id);
+
+            return voiceChannel.leave();
+        };
+
+        if (queue[voiceChannel.guild.id].songs.length && !queue[voiceChannel.guild.id].repeatMode) { //Make sure there's still songs in the queue and repeatmode is off
+            queue[voiceChannel.guild.id].totalTimeMs = queue[voiceChannel.guild.id].totalTimeMs - module.exports.hmsToMs(song.duration); //Reduce the total queue time
+        };
+
+        if (!queue[voiceChannel.guild.id].repeatMode) { //Check if repeatMode is on for the server
+            if (queue[voiceChannel.guild.id].songs[0].filePath) {
+                fs.unlink(queue[voiceChannel.guild.id].songs[0].filePath, function (err) { });
+            };
+
+            queue[voiceChannel.guild.id].songs.shift(); //Remove the first item from the queue
+        };
+
+        if (queue[voiceChannel.guild.id].songs.length) { //If there's songs left in the queue, play the first one. Otherwise just stop the player
+            playSong(queue[voiceChannel.guild.id].songs[0], voiceChannel, msgChannel);
         } else {
-            var stream = ytdl(song.url, {
-                filter: 'audioonly',
-                opusEncoded: true,
-                highWaterMark: 1 << 25,
-                seek: seek / 1000
-            });
+            msgChannel.send("I finished playing the current queue!");
+
+            deleteQueue(voiceChannel.guild.id);
+
+            return voiceChannel.leave();
         };
-
-        const dispatcher = connection.play(stream, {
-            type: 'opus',
-            bitrate: 'auto',
-            fec: true,
-            volume: queue[voiceChannel.guild.id].volume * 2 / 100
-        });
-
-        queue[voiceChannel.guild.id].seekTime = seek; //Set the additional seek time
-
-        const playingEmb = new Discord.MessageEmbed()
-            .setColor(config.embedColor)
-            .setAuthor("Now Playing")
-            .setThumbnail("attachment://thumbnail.png")
-            .setTitle(song.title)
-            .setURL(song.url)
-            .addField("Duration", song.duration, true)
-            .addField("Channel", song.channel, true)
-            .addField("Requested By", `${song.requestedBy.username}#${song.requestedBy.discriminator}`, true);
-
-        if (seek === 0) {
-            msgChannel.send({
-                embeds: [playingEmb],
-                files: [{
-                    attachment: song.thumbnail,
-                    name: 'thumbnail.png'
-                }]
-            });
-        };
-
-        dispatcher.on('finish', () => {
-            if (!queue[voiceChannel.guild.id]) { //Check if there's a queue for the guild at all
-                msgChannel.send("I finished playing the current queue!");
-
-                return voiceChannel.leave();
-            };
-
-            if (queue[voiceChannel.guild.id] && queue[voiceChannel.guild.id].channel !== null && queue[voiceChannel.guild.id].channel.channel.members.size < 2) {
-                msgChannel.send("I can't play music by myself, so I left the voice channel");
-
-                deleteQueue(voiceChannel.guild.id);
-
-                return voiceChannel.leave();
-            };
-
-            if (queue[voiceChannel.guild.id].songs.length && !queue[voiceChannel.guild.id].repeatMode) { //Make sure there's still songs in the queue and repeatmode is off
-                queue[voiceChannel.guild.id].totalTimeMs = queue[voiceChannel.guild.id].totalTimeMs - module.exports.hmsToMs(song.duration); //Reduce the total queue time
-            };
-
-            if (!queue[voiceChannel.guild.id].repeatMode) { //Check if repeatMode is on for the server
-                if (queue[voiceChannel.guild.id].songs[0].filePath) {
-                    fs.unlink(queue[voiceChannel.guild.id].songs[0].filePath, function (err) {});
-                };
-
-                queue[voiceChannel.guild.id].songs.shift(); //Remove the first item from the queue
-            };
-
-            if (queue[voiceChannel.guild.id].songs.length) { //If there's songs left in the queue, play the first one. Otherwise just stop the player
-                playSong(queue[voiceChannel.guild.id].songs[0], voiceChannel, msgChannel);
-            } else {
-                msgChannel.send("I finished playing the current queue!");
-
-                deleteQueue(voiceChannel.guild.id);
-
-                return voiceChannel.leave();
-            };
-        });
     });
 };
 

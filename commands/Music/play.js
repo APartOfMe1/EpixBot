@@ -58,17 +58,5 @@ module.exports = {
 
             return client.player.play(args.join(" "), msg.member.voice.channel, msg.channel, msg.author);
         };
-
-        function genName(length) {
-            const characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"; //Define the character set
-
-            var final = "";
-
-            for (let i = 0; i < length; i++) { //Create a string with the specified length
-                final += characters[Math.floor(Math.random() * characters.length)];
-            };
-
-            return final;
-        };
     },
 };
