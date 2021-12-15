@@ -46,32 +46,38 @@ module.exports = {
 
         var turnNumber = 0;
 
-        var user2 = msg.guild.members.cache.find(e => e.displayName.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.guild.members.cache.find(e => e.user.username.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.mentions.users.first() || client.users.cache.get(args[0]); //Find a user by username, nickname, mention, or id
+        // Find a user by username, nickname, mention, or id
+        var user2 = msg.guild.members.cache.find(e => e.displayName.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.guild.members.cache.find(e => e.user.username.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.mentions.users.first() || client.users.cache.get(args[0]);
 
         var turnId = msg.author.id;
 
-        if (!user2) { //Make sure a user was given
+        // Make sure a user was given
+        if (!user2) {
             return msg.channel.send("You need to mention a user to play against!");
-        };
+        }
 
         var acceptMsg = await msg.channel.send(`${user2}, ${msg.guild.members.cache.get(msg.author.id).displayName} wants to play tic-tac-toe with you! To accept, type \`accept\`. ${msg.guild.members.cache.get(user2.id).displayName} has one minute to accept`);
 
         const msgFilter = m => m.author.id === user2.id && m.content.toLowerCase() === 'accept';
 
-        msg.channel.awaitMessages(msgFilter, { //Wait for the user to accept the invite
+        // Wait for the user to accept the invite
+        msg.channel.awaitMessages(msgFilter, {
             max: 1,
             time: 60000,
             errors: ['time']
         }).then(async collected => {
-            var tttMsg = await msg.channel.send("Starting tic tac toe..."); //Send a message that will be used for the game
+            // Send a message that will be used for the game
+            var tttMsg = await msg.channel.send("Starting tic tac toe...");
 
-            reactionsArr.forEach(reaction => { //React to the new message with everything in the reactions array
+            // React to the new message with everything in the reactions array
+            reactionsArr.forEach(reaction => {
                 tttMsg.react(reaction);
             });
 
-            return makeMove(turn, tttMsg, grid, user2, turnId, turnNumber); //Start the game
+            // Start the game
+            return makeMove(turn, tttMsg, grid, user2, turnId, turnNumber);
         }).catch(e => {
-            acceptMsg.edit(`Looks like ${msg.guild.members.cache.get(user2.id).displayName} doesn't want to play right now :(`); //Send an error if the user doesn't respond in time
+            acceptMsg.edit(`Looks like ${msg.guild.members.cache.get(user2.id).displayName} doesn't want to play right now :(`);
         });
 
         function makeMove(turn, tttMsg, grid, user2, turnId, turnNumber) {
@@ -88,62 +94,22 @@ module.exports = {
                 embeds: [gameEmb]
             });
 
-            tttMsg.awaitReactions(filter, { //Wait for the current player to react
-                    max: 1,
-                    time: 30000,
-                    errors: ['time']
-                })
-                .then(collected => {
-                    var move = grid.find(n => n === collected.first().emoji.name); //Figure out which spot the user wants to play on
+            // Wait for the current player to react
+            tttMsg.awaitReactions(filter, {
+                max: 1,
+                time: 30000,
+                errors: ['time']
+            }).then(collected => {
+                // Figure out which spot the user wants to play on
+                var move = grid.find(n => n === collected.first().emoji.name);
 
-                    grid[grid.indexOf(move)] = `:${turn}:`; //Replace the relevant item in the array with the current players piece
+                // Replace the relevant item in the array with the current players piece
+                grid[grid.indexOf(move)] = `:${turn}:`;
 
-                    if (!checkWin(grid)) { //If the user hasn't won with the latest move
-                        if (turn === "x") { //Advance to the next turn
-                            turn = "o";
-
-                            turnId = user2.id;
-                        } else {
-                            turn = "x";
-
-                            turnId = msg.author.id;
-                        };
-
-                        ++turnNumber; //Increment the counter
-
-                        if (turnNumber > 8) { //Check for a tie
-                            var tieEmb = new Discord.MessageEmbed()
-                                .setColor(config.embedColor)
-                                .setTitle("Tic-Tac-Toe")
-                                .setFooter(`${config.name} | React with 1-9 to make a move | You have 30 seconds per turn`, client.user.avatarURL())
-                                .setDescription(`The round ended in a tie!`)
-                                .addField("Board", grid.join(""), true)
-                                .addField("Players", `\`\`\`${msg.guild.members.cache.get(msg.author.id).displayName}: X\n${msg.guild.members.cache.get(user2.id).displayName}: O\n\nCurrent turn: ${turn}\`\`\``, true);
-
-                            return tttMsg.edit("", {
-                                embeds: [tieEmb]
-                            });
-                        };
-
-                        return makeMove(turn, tttMsg, grid, user2, turnId, turnNumber);
-                    };
-
-                    var endEmb = new Discord.MessageEmbed()
-                        .setColor(config.embedColor)
-                        .setTitle("Tic-Tac-Toe")
-                        .setFooter(`${config.name} | React with 1-9 to make a move | You have 30 seconds per turn`, client.user.avatarURL())
-                        .setDescription(`**${msg.guild.members.cache.get(turnId).displayName}** won the round!`)
-                        .addField("Board", grid.join(""), true)
-                        .addField("Players", `\`\`\`${msg.guild.members.cache.get(msg.author.id).displayName}: X\n${msg.guild.members.cache.get(user2.id).displayName}: O\n\nCurrent turn: ${turn}\`\`\``, true);
-
-                    return tttMsg.edit("", {
-                        embeds: [endEmb]
-                    });
-                })
-                .catch(e => { //If the current player ran out of time
-                    var loser = msg.guild.members.cache.get(turnId).displayName; //Get the loser
-
-                    if (turn === "x") { //Advance the turns
+                // If the user hasn't won with the latest move
+                if (!checkWin(grid)) {
+                    // Advance to the next turn
+                    if (turn === "x") {
                         turn = "o";
 
                         turnId = user2.id;
@@ -151,46 +117,96 @@ module.exports = {
                         turn = "x";
 
                         turnId = msg.author.id;
-                    };
+                    }
 
-                    var winner = msg.guild.members.cache.get(turnId).displayName; //Get the winner
+                    ++turnNumber;
 
-                    var timeEmb = new Discord.MessageEmbed()
-                        .setColor(config.embedColor)
-                        .setTitle("Tic-Tac-Toe")
-                        .setFooter(`${config.name} | React with 1-9 to make a move | You have 30 seconds per turn`, client.user.avatarURL())
-                        .setDescription(`**${loser}** ran out of time, so **${winner}** won the round!`)
-                        .addField("Board", grid.join(""), true)
-                        .addField("Players", `\`\`\`${msg.guild.members.cache.get(msg.author.id).displayName}: X\n${msg.guild.members.cache.get(user2.id).displayName}: O\n\nCurrent turn: ${turn}\`\`\``, true);
+                    // Check for a tie
+                    if (turnNumber > 8) {
+                        var tieEmb = new Discord.MessageEmbed()
+                            .setColor(config.embedColor)
+                            .setTitle("Tic-Tac-Toe")
+                            .setFooter(`${config.name} | React with 1-9 to make a move | You have 30 seconds per turn`, client.user.avatarURL())
+                            .setDescription(`The round ended in a tie!`)
+                            .addField("Board", grid.join(""), true)
+                            .addField("Players", `\`\`\`${msg.guild.members.cache.get(msg.author.id).displayName}: X\n${msg.guild.members.cache.get(user2.id).displayName}: O\n\nCurrent turn: ${turn}\`\`\``, true);
 
-                    return tttMsg.edit("", {
-                        embeds: [timeEmb]
-                    });
+                        return tttMsg.edit("", {
+                            embeds: [tieEmb]
+                        });
+                    }
+
+                    return makeMove(turn, tttMsg, grid, user2, turnId, turnNumber);
+                }
+
+                var endEmb = new Discord.MessageEmbed()
+                    .setColor(config.embedColor)
+                    .setTitle("Tic-Tac-Toe")
+                    .setFooter(`${config.name} | React with 1-9 to make a move | You have 30 seconds per turn`, client.user.avatarURL())
+                    .setDescription(`**${msg.guild.members.cache.get(turnId).displayName}** won the round!`)
+                    .addField("Board", grid.join(""), true)
+                    .addField("Players", `\`\`\`${msg.guild.members.cache.get(msg.author.id).displayName}: X\n${msg.guild.members.cache.get(user2.id).displayName}: O\n\nCurrent turn: ${turn}\`\`\``, true);
+
+                return tttMsg.edit("", {
+                    embeds: [endEmb]
                 });
-        };
+            }).catch(e => {
+                // Get the loser
+                var loser = msg.guild.members.cache.get(turnId).displayName;
+
+                // Advance the turns
+                if (turn === "x") {
+                    turn = "o";
+
+                    turnId = user2.id;
+                } else {
+                    turn = "x";
+
+                    turnId = msg.author.id;
+                }
+
+                // Get the winner
+                var winner = msg.guild.members.cache.get(turnId).displayName;
+
+                var timeEmb = new Discord.MessageEmbed()
+                    .setColor(config.embedColor)
+                    .setTitle("Tic-Tac-Toe")
+                    .setFooter(`${config.name} | React with 1-9 to make a move | You have 30 seconds per turn`, client.user.avatarURL())
+                    .setDescription(`**${loser}** ran out of time, so **${winner}** won the round!`)
+                    .addField("Board", grid.join(""), true)
+                    .addField("Players", `\`\`\`${msg.guild.members.cache.get(msg.author.id).displayName}: X\n${msg.guild.members.cache.get(user2.id).displayName}: O\n\nCurrent turn: ${turn}\`\`\``, true);
+
+                return tttMsg.edit("", {
+                    embeds: [timeEmb]
+                });
+            });
+        }
 
         function checkWin(grid) {
             var win = false;
 
-            for (var i = 0, a = 0, b = 2, c = 4; i < 3; i++, a += 6, b += 6, c += 6) { //Check wins by row              
+            // Check wins by row
+            for (var i = 0, a = 0, b = 2, c = 4; i < 3; i++, a += 6, b += 6, c += 6) {
                 if (grid[a] === grid[b] && grid[b] === grid[c]) {
                     win = true;
-                };
-            };
+                }
+            }
 
-            for (var i = 0, a = 0, b = 6, c = 12; i < 3; i++, a += 2, b += 2, c += 2) { //Check wins by column         
+            // Check wins by column
+            for (var i = 0, a = 0, b = 6, c = 12; i < 3; i++, a += 2, b += 2, c += 2) {
                 if (grid[a] === grid[b] && grid[b] === grid[c]) {
                     win = true;
-                };
-            };
+                }
+            }
 
-            for (var i = 0, a = 0, b = 8, c = 16; i < 2; i++, a += 4, c -= 4) { //Check wins by diagonals            
+            // Check wins by diagonals
+            for (var i = 0, a = 0, b = 8, c = 16; i < 2; i++, a += 4, c -= 4) {
                 if (grid[a] === grid[b] && grid[b] === grid[c]) {
                     win = true;
-                };
-            };
+                }
+            }
 
             return win;
-        };
+        }
     },
 };

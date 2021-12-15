@@ -10,14 +10,18 @@ module.exports = {
     aliases: ["cleverbot", "cb"],
     category: 'Fun',
     async execute(msg, args) {
-        if (!isChatting.includes(msg.channel.id)) { //Check if a chat is going on in the current channel
-            var log = []; //Set a blank array for the log. Interactions are logged to provide context later
+        // Check if a chat is going on in the current channel
+        if (!isChatting.includes(msg.channel.id)) {
+            // Set a blank array for the log. Interactions are logged to provide context later
+            var log = [];
 
-            isChatting.push(msg.channel.id); //Add the channel to the array
+            // Add the channel to the array
+            isChatting.push(msg.channel.id);
 
             chatters[msg.channel.id] = [];
 
-            chatters[msg.channel.id].push(msg.author.id); //Add the user to the array
+            // Add the user to the array
+            chatters[msg.channel.id].push(msg.author.id);
 
             const startEmb = new Discord.MessageEmbed()
                 .setColor(config.embedColor)
@@ -29,10 +33,13 @@ module.exports = {
                 embeds: [startEmb]
             });
 
-            return chat(log); //Actually start the chat
-        } else if (isChatting.includes(msg.channel.id) && !chatters[msg.channel.id].includes(msg.author.id)) { //Check if there's a chat going on, and the member isn't in it
-            setTimeout(() => { //Set a timeout so the bot doesn't respond to the command itself
-                chatters[msg.channel.id].push(msg.author.id); //Add the user to the array
+            // Actually start the chat
+            return chat(log);
+        } else if (isChatting.includes(msg.channel.id) && !chatters[msg.channel.id].includes(msg.author.id)) {
+            // Set a timeout so the bot doesn't respond to the command itself
+            setTimeout(() => {
+                // Add the user to the array
+                chatters[msg.channel.id].push(msg.author.id);
             }, 500);
 
             const joinEmb = new Discord.MessageEmbed()
@@ -44,7 +51,7 @@ module.exports = {
             msg.channel.send({
                 embeds: [joinEmb]
             });
-        };
+        }
 
         function chat(log) {
             const filter = m => m.content && chatters[m.channel.id].includes(m.author.id);
@@ -58,19 +65,24 @@ module.exports = {
                 if (m.content.toLowerCase() === `${config.prefix}chat` || m.content.toLowerCase() === `${client.db.settings.get(msg.guild.id).prefix}chat`) {
                     removeUser(m.author);
 
-                    if (chatters[msg.channel.id].length < 1) { //End the chat if there's no one left
+                    // End the chat if there's no one left
+                    if (chatters[msg.channel.id].length < 1) {
                         return collector.stop();
-                    };
+                    }
 
                     return;
-                };
+                }
 
-                log.push(m.content); //Add the message to the log
+                // Add the message to the log
+                log.push(m.content);
 
-                msg.channel.sendTyping(); //Start typing to make the bot seem more humanlike
+                // Start typing to make the bot seem more humanlike
+                msg.channel.sendTyping();
 
-                cleverbot(m.content, log.slice(0, -1)).then(response => { //Clever the bot
-                    log.push(response); //Log the response
+                // Clever the bot
+                cleverbot(m.content, log.slice(0, -1)).then(response => {
+                    // Log the response
+                    log.push(response);
 
                     const responseEmb = new Discord.MessageEmbed()
                         .setColor(config.embedColor)
@@ -83,13 +95,15 @@ module.exports = {
                 });
             });
 
-            collector.on("end", () => { //End the chat once time expires
+            // End the chat once time expires
+            collector.on("end", () => {
                 return endChat();
             });
-        };
+        }
 
         function removeUser(user) {
-            chatters[msg.channel.id].splice(chatters[msg.channel.id].indexOf(chatters[msg.channel.id].find(u => u === user.id)), 1); //Remove the user from the array
+            // Remove the user from the array
+            chatters[msg.channel.id].splice(chatters[msg.channel.id].indexOf(chatters[msg.channel.id].find(u => u === user.id)), 1);
 
             const leaveEmb = new Discord.MessageEmbed()
                 .setColor(config.embedColor)
@@ -97,19 +111,22 @@ module.exports = {
                 .setTitle("You left the conversation!")
                 .setFooter(config.name, client.user.avatarURL());
 
-            if (chatters[msg.channel.id].length > 0) { //Only send the message if there's another chatter. This is to avoid spam in the channel
+            // Only send the message if there's another chatter. This is to avoid spam in the channel
+            if (chatters[msg.channel.id].length > 0) {
                 return msg.channel.send({
                     embeds: [leaveEmb]
                 });
-            };
+            }
 
             return;
-        };
+        }
 
         function endChat() {
-            isChatting.splice(isChatting.findIndex(g => g === msg.channel.id), 1); //Remove the channel from the array
+            // Remove the channel from the array
+            isChatting.splice(isChatting.findIndex(g => g === msg.channel.id), 1);
 
-            chatters[msg.channel.id] = []; //Reset the list of chatters
+            // Reset the list of chatters
+            chatters[msg.channel.id] = [];
 
             const endEmb = new Discord.MessageEmbed()
                 .setColor(config.embedColor)
@@ -119,6 +136,6 @@ module.exports = {
             return msg.channel.send({
                 embeds: [endEmb]
             });
-        };
+        }
     },
 };

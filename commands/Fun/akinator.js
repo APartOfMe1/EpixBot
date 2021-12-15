@@ -23,21 +23,25 @@ module.exports = {
 
         for (const r of reactions) {
             await gameMsg.react(r);
-        };
+        }
 
         const aki = new Aki("en");
 
-        await aki.start(); //Wait for the game to start
+        // Wait for the game to start
+        await aki.start();
 
         return newQuestion(gameMsg);
 
         async function newQuestion(gameMsg) {
-            if (aki.progress >= 70 || aki.currentStep >= 78) { //Check if the game is over
+            // Check if the game is over
+            if (aki.progress >= 70 || aki.currentStep >= 78) {
                 await aki.win();
 
-                gameMsg.reactions.removeAll(); //Remove all reactions
+                // Remove all reactions
+                gameMsg.reactions.removeAll();
 
-                const character = aki.answers[0]; //Get the first result
+                // Get the first result
+                const character = aki.answers[0];
 
                 const winEmb = new Discord.MessageEmbed()
                     .setColor(config.embedColor)
@@ -47,11 +51,12 @@ module.exports = {
                     .addField("Total Guesses", `\`\`\`${aki.currentStep}\`\`\``, true)
                     .setFooter(`${config.name} | You have 45 seconds to make a choice`, client.user.avatarURL());
 
-                return gameMsg.edit({ //Edit the message with the new embed
+                // Edit the message with the new embed
+                return gameMsg.edit({
                     content: null,
                     embeds: [winEmb]
                 });
-            };
+            }
 
             const gameEmb = new Discord.MessageEmbed()
                 .setColor(config.embedColor)
@@ -61,12 +66,13 @@ module.exports = {
                 .addField("Reactions", `Yes: ✅\nNo: ❌\nDon't Know: 🤷‍♀️\nProbably: 👍\nProbably Not: 👎`)
                 .setFooter(`${config.name} | You have 45 seconds to make a choice`, client.user.avatarURL());
 
-            gameMsg.edit({ //Edit the message with the new embed
+            // Edit the message with the new embed
+            gameMsg.edit({
                 content: null,
                 embeds: [gameEmb]
             });
 
-            //Make sure the reaction emoji is valid and the reactor is the message author
+            // Make sure the reaction emoji is valid and the reactor is the message author
             const reactionFilter = (r, u) => reactions.includes(r.emoji.name) && u.id === msg.author.id;
             
             gameMsg.awaitReactions({
@@ -75,9 +81,11 @@ module.exports = {
                 time: 45000,
                 errors: ["time"]
             }).then(async collected => {
-                collected.first().emoji.reaction.users.remove(msg.author.id); //Remove the reaction
+                // Remove the reaction
+                collected.first().emoji.reaction.users.remove(msg.author.id);
 
-                switch (collected.first().emoji.name) { //Check for the desired result
+                // Check for the desired result
+                switch (collected.first().emoji.name) {
                     case "✅":
                         await aki.step(0);
 
@@ -112,9 +120,10 @@ module.exports = {
                         newQuestion(gameMsg);
 
                         break;
-                };
+                }
             }).catch(e => {
-                gameMsg.reactions.removeAll(); //Remove all reactions
+                // Remove all reactions
+                gameMsg.reactions.removeAll();
 
                 return gameMsg.edit({
                     content: "The answer wasn't given in time!",

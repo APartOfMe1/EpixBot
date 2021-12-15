@@ -17,19 +17,23 @@ module.exports = {
 
         if (!parseInt(args[0])) {
             return getCategories();
-        };
+        }
 
-        var credits = parseInt(args[0], 10); //Get the amount of credits to bet
+        // Get the amount of credits to bet
+        var credits = parseInt(args[0], 10);
 
-        if (!credits) { //If there were no credits specified, set the amount to 1
+        // If there were no credits specified, set the amount to 1
+        if (!credits) {
             credits = 1;
-        };
+        }
 
-        if (credits > 500) { //Make sure the user doesn't bet more than 500 credits at a time
+        // Make sure the user doesn't bet more than 500 credits at a time
+        if (credits > 500) {
             credits = 500;
-        };
+        }
 
-        client.db.credits.ensure(msg.author.id, { //Set the default settings for credits
+        // Set the default settings for credits
+        client.db.credits.ensure(msg.author.id, {
             user: msg.author.id,
             credits: 0,
             streak: 0,
@@ -37,55 +41,67 @@ module.exports = {
             totaldailies: 0
         });
 
-        if (client.db.credits.get(msg.author.id, "credits") < credits) { //Check to see if the user has enough credits to play
+        // Check to see if the user has enough credits to play
+        if (client.db.credits.get(msg.author.id, "credits") < credits) {
             return msg.channel.send("You don't have enough credits!");
-        };
+        }
 
         const highlow = await getCategories(true);
 
-        if (args[1] && !parseInt(args[1]) || args[1] && parseInt(args[1]) > highlow.high || args[1] && parseInt(args[1]) < highlow.low) { //Check if the category is valid
+        // Check if the category is valid
+        if (args[1] && !parseInt(args[1]) || args[1] && parseInt(args[1]) > highlow.high || args[1] && parseInt(args[1]) < highlow.low) {
             return getCategories();
-        };
+        }
 
         var url = "https://opentdb.com/api.php?amount=1&encode=url3986";
 
-        if (args[1] && parseInt(args[1])) { //Change the url to use the selected category
+        // Change the url to use the selected category
+        if (args[1] && parseInt(args[1])) {
             url = `https://opentdb.com/api.php?amount=1&encode=url3986&category=${parseInt(args[1])}`;
-        };
+        }
 
-        client.db.credits.set(msg.author.id, client.db.credits.get(msg.author.id, "credits") - credits, "credits"); //Remove the specified amount of credits from the user's account
+        // Remove the specified amount of credits from the user's account
+        client.db.credits.set(msg.author.id, client.db.credits.get(msg.author.id, "credits") - credits, "credits");
 
         msg.channel.send(`You used **${credits}** credits to play trivia!`);
 
-        return newQuestion(url); //Get a question
+        // Get a question
+        return newQuestion(url);
 
         async function newQuestion(url) {
+            // Get the question info
+            // The question is retrieved in RFC 3986 and decoded later to avoid issues with the default format
             const {
                 body
-            } = await get(url); //Get the question info. The question is retrieved in RFC 3986 and decoded later to avoid issues with the default format
+            } = await get(url);
 
-            var answers = body.results[0].incorrect_answers; //Get the incorrect answers in an array
+            // Get the incorrect answers in an array
+            var answers = body.results[0].incorrect_answers;
 
-            answers.push(body.results[0].correct_answer); //Add the correct answer to the array
+            // Add the correct answer to the array
+            answers.push(body.results[0].correct_answer);
 
-            shuffle(answers); //Randomize the order of the answers
+            // Randomize the order of the answers
+            shuffle(answers);
 
-            var i = 0; //Set a variable for the answer number
+            var i = 0;
 
-            var numbers = []; //An array that will contain the total number of answers
+            var numbers = [];
 
-            var correctNumber = null; //Set a blank variable that will store the number of the correct answer
+            var correctNumber = null;
 
-            answers = answers.map((a) => { //Get all the answers
-                +i; //Increment the counter by one
+            answers = answers.map((a) => {
+                +i;
 
-                numbers.push(i = i + 1); //Add the current number to the array
+                numbers.push(i = i + 1);
 
-                if (a === body.results[0].correct_answer) { //Add the correct answer to the variable
+                // Add the correct answer to the variable
+                if (a === body.results[0].correct_answer) {
                     correctNumber = i;
-                };
+                }
 
-                return `${`**${i}.**`} ${a}`; //Format the message correctly
+                // Format the message correctly
+                return `${`**${i}.**`} ${a}`;
             }).join('\n');
 
             const questionEmbed = new Discord.MessageEmbed()
@@ -99,29 +115,33 @@ module.exports = {
                 embeds: [questionEmbed]
             });
 
-            const filter = m => m.author.id === msg.author.id && numbers.join(",").includes(m.content); //Create a filter that only accepts messages from the original author and that includes a valid answer
+            // Create a filter that only accepts messages from the original author and that includes a valid answer
+            const filter = m => m.author.id === msg.author.id && numbers.join(",").includes(m.content);
 
             msg.channel.awaitMessages(filter, {
                 max: 1,
                 time: 30000,
                 errors: ['time']
             }).then(collected => {
-                if (collected.first().content == correctNumber) { //Check if the correct answer was given
-                    ++streak //Add 1 to the members streak
+                // Check if the correct answer was given
+                if (collected.first().content == correctNumber) {
+                    ++streak;
 
                     msg.channel.send(`You got it right! Your streak is now ${streak}`);
 
-                    return newQuestion(url); //Get a new question
+                    // Get a new question
+                    return newQuestion(url);
                 } else {
                     var earnedCredits = credits * streak;
 
                     if (earnedCredits > 5000) {
                         earnedCredits = 5000;
-                    };
+                    }
 
-                    client.db.credits.set(msg.author.id, client.db.credits.get(msg.author.id, "credits") + earnedCredits, "credits"); //Set the credits
+                    // Set the credits
+                    client.db.credits.set(msg.author.id, client.db.credits.get(msg.author.id, "credits") + earnedCredits, "credits");
 
-                    const failEmbed = new Discord.MessageEmbed() //End the game if the user gave the wrong answer
+                    const failEmbed = new Discord.MessageEmbed()
                         .setTitle("Game Over")
                         .setColor(config.embedColor)
                         .setDescription("That was the wrong answer!")
@@ -132,17 +152,18 @@ module.exports = {
                     return msg.channel.send({
                         embeds: [failEmbed]
                     });
-                };
+                }
             }).catch(e => {
                 var earnedCredits = credits * streak;
 
                 if (earnedCredits > 5000) {
                     earnedCredits = 5000;
-                };
+                }
 
-                client.db.credits.set(msg.author.id, client.db.credits.get(msg.author.id, "credits") + earnedCredits, "credits"); //Set the credits
+                // Set the credits
+                client.db.credits.set(msg.author.id, client.db.credits.get(msg.author.id, "credits") + earnedCredits, "credits");
 
-                const timeEmbed = new Discord.MessageEmbed() //End the game if the user ran out of time
+                const timeEmbed = new Discord.MessageEmbed()
                     .setTitle("Game Over")
                     .setColor(config.embedColor)
                     .setDescription("You ran out of time!")
@@ -154,9 +175,10 @@ module.exports = {
                     embeds: [timeEmbed]
                 });
             });
-        };
+        }
 
-        function shuffle(a) { //Uses the Fisher–Yates shuffle algorithm
+        // Uses the Fisher–Yates shuffle algorithm
+        function shuffle(a) {
             var j, x, i;
 
             for (i = a.length - 1; i > 0; i--) {
@@ -167,10 +189,10 @@ module.exports = {
                 a[i] = a[j];
 
                 a[j] = x;
-            };
+            }
 
             return a;
-        };
+        }
 
         async function getCategories(getNums) {
             const list = [];
@@ -179,26 +201,28 @@ module.exports = {
                 body
             } = await get('https://opentdb.com/api_category.php');
 
-            if (getNums === true) { //If we just want to get the highest/lowest IDs
+            // If we just want to get the highest/lowest IDs
+            if (getNums === true) {
                 var high = 0;
 
-                var low = 999; //Set this variable high so that it's basically guaranteed that something will be lower
+                // Set this variable high so that it's basically guaranteed that something will be lower
+                var low = 999;
 
                 for (const n of body.trivia_categories) {
                     if (n.id > high) {
                         high = n.id;
-                    };
+                    }
 
                     if (n.id < low) {
                         low = n.id;
-                    };
-                };
+                    }
+                }
 
                 return ({
                     high: high,
                     low: low
                 });
-            };
+            }
 
             body.trivia_categories.map(i => {
                 list.push(`\`${i.id}\` ${i.name}`);
@@ -213,6 +237,6 @@ module.exports = {
             return msg.channel.send({
                 embeds: [catEmb]
             });
-        };
+        }
     },
 };

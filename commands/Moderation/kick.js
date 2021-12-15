@@ -8,42 +8,44 @@ module.exports = {
   usage: '`{prefix}kick @user <reason>` or `{prefix}kick <user id> <reason>`',
   examples: '`{prefix}kick @A part of me#0412 spammed messages` or `{prefix}kick 277137613775831050 broke rules`',
   async execute(msg, args) {
-
-    if (!msg.member.permissions.has(Discord.Permissions.KICK_MEMBERS)) { //Send an error if the author doesn't have permission to kick members
+    if (!msg.member.permissions.has(Discord.Permissions.KICK_MEMBERS)) {
       return msg.reply("Sorry! You don't have permission to kick users");
-    };
+    }
 
-    let kick = msg.mentions.members.first() || msg.guild.members.cache.get(args[0]); //Get the member to kick
+    // Get the user to kick
+    let kick = msg.mentions.members.first() || msg.guild.members.cache.get(args[0]);
 
-    let reason = args.slice(1).join(' '); //Get the kick reason
+    let reason = args.slice(1).join(' ');
 
-    if (!kick) { //Send an error if no valid member is provided
+    if (!kick) {
       return msg.reply("Please mention a valid member of this server or give an id");
-    };
+    }
 
-    if (kick.id === msg.author.id) { //Send an error if the author tries to kick themselves
+    if (kick.id === msg.author.id) {
       return msg.channel.send("You can't kick yourself!");
-    };
+    }
 
-    if (!kick.kickable) { //Send an error if the member isn't kickable
+    if (!kick.kickable) {
       return msg.reply("I can't kick this user! Do they have a higher role? Do I have kick permissions?");
-    };
+    }
 
-    if (msg.member.roles.highest === kick.roles.highest) { //Send an error if both users are at the same level in the role hierarchy
+    // Send an error if both users are at the same level in the role hierarchy
+    if (msg.member.roles.highest === kick.roles.highest) {
       return msg.channel.send("I can't kick this user! Are you both at the same level in the role hierarchy?");
-    };
+    }
 
-    if (msg.member.roles.highest.comparePositionTo(kick.roles.highest) < 0) { //Send an error if the member tries to kick someone with a higher role
+    if (msg.member.roles.highest.comparePositionTo(kick.roles.highest) < 0) {
       return msg.channel.send("I can't kick someone with a higher role than yours!");
-    };
+    }
 
-    if (!reason) { //Send an error if there was no reason provided
+    if (!reason) {
       reason = "No reason provided";
-    };
+    }
 
-    kick.send(`You were kicked from ${msg.guild} because: ${reason}`); //Send the member a DM explaining why they were kicked
+    // Send the member a DM explaining why they were kicked
+    kick.send(`You were kicked from ${msg.guild} because: ${reason}`);
 
-    const embed = new Discord.MessageEmbed() //Create and send an embed
+    const embed = new Discord.MessageEmbed()
       .setColor(config.embedColor)
       .setDescription(`${kick.user.tag} has been kicked by ${msg.author.tag}`)
       .addField(`Reason`, reason);

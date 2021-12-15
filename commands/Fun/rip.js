@@ -9,30 +9,28 @@ module.exports = {
     usage: '`{prefix}rip <text>` or `{prefix}rip @user`',
     examples: '`{prefix}rip the code` or `{prefix}rip @A part of me#0412`',
     async execute(msg, args) {
-        //Ngl I don't remember what half of this does.
-        //I'm writing the comments like 2 years after the original code because I was braindead when I first wrote this
-        //Just google it ig lmao
-        
-        const canvas = Canvas.createCanvas(252, 297); //Create a blank canvas
+        const canvas = Canvas.createCanvas(252, 297);
 
-        const img = canvas.getContext('2d'); //Probably tells it that it's 2d lol
+        const img = canvas.getContext('2d');
 
-        const text = args.join(" "); //Get the message if available
+        const text = args.join(" ");
 
-        const user = msg.mentions.users.first(); //Get the mentioned user if available
+        const user = msg.mentions.users.first();
 
-        const member = msg.mentions.members.first(); //Get the mentioned member if available
+        const member = msg.mentions.members.first();
 
-        const background = await Canvas.loadImage('./assets/images/rip/rip.png'); //Use the rip image
+        const background = await Canvas.loadImage('./assets/images/rip/rip.png');
 
-        img.drawImage(background, 0, 0, canvas.width, canvas.height); //Set the image
+        img.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-        img.font = '30px Impact'; //Set the font
+        img.font = '30px Impact';
 
-        img.rotate(0); //Rotate the image
+        img.rotate(0);
 
-        if (!user) { //If there was no user mentioned, use the message content
-            CanvasTextWrapper(canvas, text, { //Set options for text
+        // If there was no user mentioned, use the message content
+        if (!user) {
+            // Set options for text
+            CanvasTextWrapper(canvas, text, {
                 strokeText: true,
                 textAlign: 'center',
                 verticalAlign: 'bottom',
@@ -42,9 +40,11 @@ module.exports = {
                 maxFontSizeToFill: '30'
             });
 
-            var attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'rip.png'); //Set the new image as an attachment
+            // Set the new image as an attachment
+            var attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'rip.png');
 
-            if (text.length > 25) { //If the text is too long, send a warning before sending the image
+            // If the text is too long, send a warning before sending the image
+            if (text.length > 25) {
                 const final = await msg.channel.send('Warning! All text should be no longer than about 5 words or around 25 characters. Any more than that and your text might start to overlap or shrink. \n\nCreating Image...');
 
                 setTimeout(function () {
@@ -55,32 +55,37 @@ module.exports = {
                     });
                 }, 6000);
             } else {
-                return msg.channel.send({ //Send the image if the message isn't too long
+                // Send the image if the message isn't too long
+                return msg.channel.send({
                     files: [attachment]
                 });
-            };
-        } else { //If there was a mention
-            const getavatar = await user.displayAvatarURL({ //Get the avatar of the mentioned user
+            }
+        } else {
+            // Get the avatar of the mentioned user
+            const getavatar = await user.displayAvatarURL({
                 format: 'png',
                 dynamic: true,
                 size: 1024
             });
 
-            const avatar = await Canvas.loadImage(getavatar); //Load the avatar
+            const avatar = await Canvas.loadImage(getavatar);
 
-            var finalname = user.username; //Get the username
+            var finalname = user.username;
 
-            if (member.displayName.length < user.username.length) { //Check if the username or nickname is longer
+            // Check if the username or nickname is longer
+            if (member.displayName.length < user.username.length) {
                 var finalname = member.displayName;
-            };
+            }
 
-            img.drawImage(avatar, 88, 150, 70, 70); //Add the avatar to the image
+            // Add the avatar to the image at a specific coordinate
+            img.drawImage(avatar, 88, 150, 70, 70);
 
-            let imgData = img.getImageData(0, 0, img.canvas.width, img.canvas.height); //Get the image data
+            let imgData = img.getImageData(0, 0, img.canvas.width, img.canvas.height);
 
-            let pixels = imgData.data; //Get the image data again idk
+            let pixels = imgData.data;
 
-            for (var i = 0; i < pixels.length; i += 4) { //Remove color from the image
+            // Remove color from the image
+            for (var i = 0; i < pixels.length; i += 4) {
                 let lightness = parseInt((pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3);
 
                 pixels[i] = lightness;
@@ -88,19 +93,22 @@ module.exports = {
                 pixels[i + 1] = lightness;
 
                 pixels[i + 2] = lightness;
-            };
+            }
 
-            img.putImageData(imgData, 0, 0); //Set the now-colorless image
+            // Set the now-colorless image
+            img.putImageData(imgData, 0, 0);
 
-            img.textAlign = "center"; //Center the text
+            img.textAlign = "center";
 
-            img.fillText(finalname, 125, 250); //Add the text to the image
+            // Add the text to the image
+            img.fillText(finalname, 125, 250);
 
-            var attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'rip.png'); //Set the new image as an aattachment
+            // Set the new image as an attachment
+            var attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'rip.png');
 
             return msg.channel.send({
                 files: [attachment]
             });
-        };
+        }
     },
 };

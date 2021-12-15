@@ -51,66 +51,89 @@ module.exports = {
 
         var user1 = msg.guild.members.cache.get(msg.author.id);
 
-        var user2 = msg.mentions.users.first() || client.users.cache.get(args[0]) || msg.guild.members.cache.find(e => e.displayName.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.guild.members.cache.find(e => e.user.username.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.guild.members.cache.random().user; //Search for a user by username, nickname, mention, id, or just choose a random one
+        // Search for a user by username, nickname, mention, id, or just choose a random one
+        var user2 = msg.mentions.users.first() || client.users.cache.get(args[0]) || msg.guild.members.cache.find(e => e.displayName.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.guild.members.cache.find(e => e.user.username.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.guild.members.cache.random().user;
 
         var health1 = 100;
 
         var health2 = 100;
 
-        if (isPlaying[msg.channel.id] === true) { //Check if a game is currently going on in the channel
+        // Check if a game is currently going on in the channel
+        if (isPlaying[msg.channel.id] === true) {
             return msg.channel.send("There's already a battle happening in this channel!");
-        };
+        }
 
-        if (!args[1]) { //Make sure we don't search for a user when we don't need to
+        // Make sure we don't search for a user when we don't need to
+        if (!args[1]) {
             user2 = msg.guild.members.cache.random().user;
-        };
+        }
 
-        isPlaying[msg.channel.id] = true; //Set the status to true
+        // Set the status to true
+        isPlaying[msg.channel.id] = true;
 
-        var battleMsg = await msg.channel.send("Starting battle..."); //Send a message we can edit later with the game info
+        // Send a message we can edit later with the game info
+        var battleMsg = await msg.channel.send("Starting battle...");
 
-        var game = setInterval(() => { //Repeat every 1 and a half seconds
-            var damage = 0; //Set the current damage output to 0
+        // Repeat every 1 and a half seconds
+        var game = setInterval(() => {
+            // Set the current damage output to 0
+            var damage = 0;
 
             var crit = 0;
 
-            var actionType = Math.floor(Math.random() * (2 - 1 + 1)) + 1; //Get a number from 1-2 to determine which type of action should be used
+            // Get a number from 1-2 to determine which type of action should be used
+            var actionType = Math.floor(Math.random() * (2 - 1 + 1)) + 1;
 
             var action = '';
 
-            if (turn === 1) { //Check whos turn it is
-                turn = 2; //Advance the turn
+            // Check whose turn it is
+            if (turn === 1) {
+                // Advance the turn
+                turn = 2;
 
-                damage = Math.floor(Math.random() * (15 - 1 + 1)) + 1; //Get the amount of damage to be dealt. This can be anywhere from 1 to 15
+                // Get the amount of damage to be dealt. This can be anywhere from 1 to 15
+                damage = Math.floor(Math.random() * (15 - 1 + 1)) + 1;
 
-                crit = Math.floor(Math.random() * (5 - -55 + 1)) + -55; //Get a random number from -25 to 5
+                // Get a random number from -25 to 5
+                crit = Math.floor(Math.random() * (5 - -55 + 1)) + -55;
 
-                if (actionType === 1) { //Check what action type should be used
+                // Check what action type should be used
+                if (actionType === 1) {
                     action = `**${user1.displayName}** ${actions[Math.floor(Math.random() * (actions.length - 1) + 1)]} **${msg.guild.members.cache.get(user2.id).displayName}**, ${endWords[Math.floor(Math.random() * (endWords.length - 1) + 1)]}`;
                 } else {
                     action = actionArr[Math.floor(Math.random() * (actionArr.length - 1) + 1)];
 
                     action = `**${user1.displayName}** ${action[0]} **${msg.guild.members.cache.get(user2.id).displayName}** ${action[1]}, ${endWords[Math.floor(Math.random() * (endWords.length - 1) + 1)]}`;
-                };
+                }
 
-                if (crit > 0) { //Check if the number is positive. If it is, treat the turn as a critical hit
-                    damage = damage * crit; //Multiply damage by the crit number
+                // Check if the number is positive. If it is, treat the turn as a critical hit
+                if (crit > 0) {
+                    // Multiply damage by the crit number
+                    damage = damage * crit;
 
-                    health2 = health2 - damage; //Set the health
+                    // Set the health
+                    health2 = health2 - damage;
 
-                    first3.push(`${action} ${damage} damage. A critical hit!`); //Push the message to the array
+                    // Push the message to the array
+                    first3.push(`${action} ${damage} damage. A critical hit!`);
                 } else {
-                    health2 = health2 - damage; //Set the health
+                    // Set the health
+                    health2 = health2 - damage;
 
-                    first3.push(`${action} ${damage} damage`); //Push the message to the array
-                };
+                    // Push the message to the array
+                    first3.push(`${action} ${damage} damage`);
+                }
 
-                if (health2 < 1) { //Check if the health is at/below 0
-                    clearInterval(game); //Stop making new actions
+                // Check if the health is at/below 0
+                if (health2 < 1) {
+                    // Stop making new actions
+                    clearInterval(game);
 
-                    isPlaying[msg.channel.id] = false; //Set the game status
+                    // Set the game status
+                    isPlaying[msg.channel.id] = false;
 
-                    health2 = 0; //Make sure the health doesn't have a negative value
+                    // Make sure the health doesn't have a negative value
+                    health2 = 0;
 
                     var gameEmb = new Discord.MessageEmbed()
                         .setTitle("Battle")
@@ -125,12 +148,12 @@ module.exports = {
                         content: null,
                         embeds: [gameEmb]
                     });
-                };
+                }
 
                 var gameEmb = new Discord.MessageEmbed()
                     .setTitle("Battle")
                     .setColor(config.embedColor)
-                    .addField("Game", first3.slice(Math.max(first3.length - 3, 0)).join("\n")) //Get the last 3 items in the array. This lets the messages have a nice scrolling effect
+                    .addField("Game", first3.slice(Math.max(first3.length - 3, 0)).join("\n"))
                     .addField(`${user1.displayName}'s Health`, `${health1}/100`, true)
                     .addField(`${msg.guild.members.cache.get(user2.id).displayName}'s Health`, `${health2}/100`, true)
                     .setFooter(config.name, client.user.avatarURL());
@@ -139,7 +162,9 @@ module.exports = {
                     content: null,
                     embeds: [gameEmb]
                 });
-            } else { //This is all the same as above, just for the other player
+            } else {
+                // This is all the same as above, just for the other player
+                // Because the first rule of coding is to duplicate code as much as possible amirite?
                 turn = 1;
 
                 damage = Math.floor(Math.random() * (15 - 1 + 1)) + 1;
@@ -152,7 +177,7 @@ module.exports = {
                     action = actionArr[Math.floor(Math.random() * (actionArr.length - 1) + 1)];
 
                     action = `**${msg.guild.members.cache.get(user2.id).displayName}** ${action[0]} **${user1.displayName}** ${action[1]}, ${endWords[Math.floor(Math.random() * (endWords.length - 1) + 1)]}`;
-                };
+                }
 
                 if (crit > 0) {
                     damage = damage * crit;
@@ -164,7 +189,7 @@ module.exports = {
                     health1 = health1 - damage;
 
                     first3.push(`${action} ${damage} damage`);
-                };
+                }
 
                 if (health1 < 1) {
                     clearInterval(game);
@@ -185,7 +210,7 @@ module.exports = {
                     return battleMsg.edit({
                         embeds: [gameEmb]
                     });
-                };
+                }
 
                 var gameEmb = new Discord.MessageEmbed()
                     .setTitle("Battle")
@@ -198,7 +223,7 @@ module.exports = {
                 battleMsg.edit({
                     embeds: [gameEmb]
                 });
-            };
+            }
         }, 2000);
     },
 };

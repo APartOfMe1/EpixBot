@@ -15,57 +15,68 @@ module.exports = {
     usage: '`{prefix}backup create` or `{prefix}backup restore <id>`',
     examples: '`{prefix}backup restore 730448128594587340`',
     async execute(msg, args) {
-        if (!msg.member.permissions.has(Discord.Permissions.ADMINISTRATOR)) { //Send an error if the author doesn't have permission
+        if (!msg.member.permissions.has(Discord.Permissions.ADMINISTRATOR)) {
             return msg.channel.send("You need admin permissions to create or restore server backups");
-        };
+        }
 
-        if (!msg.guild.me.permissions.has(Discord.Permissions.ADMINISTRATOR)) { //Send an error if the bot doesn't have permissions
+        if (!msg.guild.me.permissions.has(Discord.Permissions.ADMINISTRATOR)) {
             return msg.channel.send("I need admin permissions to create/restore backups!");
-        };
+        }
 
-        var maxMsgCount = 50; //Set the message count to restore per channel. This can be increased as a patreon reward in the future or something
+        // Set the message count to restore per channel
+        var maxMsgCount = 50;
 
         if (args[0]) {
             if (args[0].toLowerCase() === "create") {
-                if (!cooldown.has(msg.guild.id)) { //Check if the guild is on a cooldown
-                    cooldown.add(msg.guild.id); //Add the guild ot the cooldown
-
-                    setTimeout(() => { //Delete the guild from the cooldown after 24 hours. This is done separately from normal cooldowns since 12 hours is a long time, and normally cooldown times are displayed as seconds 
+                // Check if the guild is on a cooldown
+                if (!cooldown.has(msg.guild.id)) {
+                    // Add the guild to the cooldown
+                    cooldown.add(msg.guild.id);
+                
+                    // Delete the guild from the cooldown after 24 hours.
+                    // This is done separately from normal cooldowns since 12 hours is a long time, and normally cooldown times are displayed as seconds
+                    setTimeout(() => { 
                         cooldown.delete(msg.guild.id);
                     }, 86400000);
 
-                    var waitingMsg = await msg.channel.send(`${emojis.loading} Creating backup... This may take a few minutes`); //Send a message to edit later
+                    var waitingMsg = await msg.channel.send(`${emojis.loading} Creating backup... This may take a few minutes`);
 
-                    backup.create(msg.guild, { //Create the backup
+                    // Create the backup
+                    backup.create(msg.guild, {
                         jsonSave: true,
                         jsonBeautify: false,
                         maxMessagesPerChannel: maxMsgCount,
                         saveImages: "base64"
                     }).then((backupData) => {
+                        // Send a success message to the author
                         msg.author.send({
                             content: `The backup for **${msg.guild}** was successfully created! To restore it, you'll need to run \`${config.prefix}backup restore ${backupData.id}\`\n\nYour backup id: **${backupData.id}**\n\nThe backup file is included below. It's recommended to store this file somewhere safe in case the remote copy ever gets deleted. You can also share this file with others to let them have a copy of the server.`,
                             files: [
                                 path.resolve(`./assets/backups/${backupData.id}.json`)
                             ]
-                        }); //Send a success message to the author
+                        });
 
-                        waitingMsg.edit(`:white_check_mark: The backup was successfully created and the details were sent to **${msg.guild.members.cache.get(msg.author.id).displayName}**`); //Edit the message
+                        waitingMsg.edit(`:white_check_mark: The backup was successfully created and the details were sent to **${msg.guild.members.cache.get(msg.author.id).displayName}**`);
                     });
 
                     return;
-                } else { //If the guild is on a cooldown
+                } else {
+                    // If the guild is on a cooldown
                     return msg.channel.send(`Please wait 24 hours in between backups`);
-                };
+                }
             } else if (args[0].toLowerCase() === "restore") {
-                if (!args[1]) { //Make sure an id is given
+                // Make sure an id is given
+                if (!args[1]) {
                     return msg.channel.send("You need to specify a backup ID!");
-                };
+                }
 
-                var code = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1); //Generate a random four digit code
+                // Generate a random four digit code
+                var code = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
 
                 msg.channel.send(`Are you sure you want to restore the backup? This will delete **ALL** data on the server and replace it with the data in the backup. This includes messages, channels, roles, bans, server settings, emojis, etc \n\nIf you're sure you want to restore the backup, type **${code}** within 45 seconds`);
 
-                const filter = m => m.author.id === msg.author.id && m.content === code; //Make sure the message comes from the author and includes the code we generated earlier
+                // Make sure the message comes from the author and includes the code we generated earlier
+                const filter = m => m.author.id === msg.author.id && m.content === code;
 
                 msg.channel.awaitMessages(filter, {
                     max: 1,
@@ -74,24 +85,26 @@ module.exports = {
                 }).then(async collected => {
                     const restoreMsg = await msg.author.send(`${emojis.loading} Restoring the backup... This can take up to a few hours. Please don't touch anything during the restore, as that can mess things up and cause your restore to fail.`);
 
-                    backup.load(args[1], msg.guild, { //Load the backup
+                    // Load the backup
+                    backup.load(args[1], msg.guild, {
                         clearGuildBeforeRestore: true,
                         maxMessagesPerChannel: maxMsgCount
                     }).then(() => {
-                        //Delete the message and send a new one to send a notification to the author
+                        // Delete the message and send a new one to send a notification to the author
                         restoreMsg.delete();
 
                         msg.author.send("✅ Done! Go check out your newly-restored server!");
                     }).catch(e => {
-                        return msg.channel.send("That isn't a valid backup ID!"); //If there was an error, assume the code was wrong
+                        // If there was an error, assume the code was wrong
+                        return msg.channel.send("That isn't a valid backup ID!");
                     });
                 }).catch(e => {
-                    return msg.channel.send("No answer was given, so the restore was cancelled"); //Exit the command if no message was given
+                    return msg.channel.send("No answer was given, so the restore was cancelled");
                 });
 
                 return;
-            };
-        };
+            }
+        }
 
         const failEmb = new Discord.MessageEmbed()
             .setTitle("Server Backups")

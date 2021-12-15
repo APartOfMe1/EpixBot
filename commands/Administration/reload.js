@@ -7,69 +7,95 @@ module.exports = {
     usage: '`{prefix}reload` or `{prefix}reload <command>`',
     examples: '`{prefix}reload ping`',
     async execute(msg, args) {
-        if (!args[0]) { //Check if there was a command specified
+        // Check if there was a command specified
+        if (!args[0]) {
             checkNew();
         } else {
             reloadCmd();
-        };
+        }
 
-        function checkNew() { //Run if there was no command specified
+        // Run if there was no command specified
+        function checkNew() {
             var reloaded = [];
 
-            klaw("./commands") //Run through the commands folder
+            // Run through the commands folder
+            klaw("./commands")
                 .on('data', c => {
-                    if (!c.path.endsWith(".js")) return; //Ignore non-js files
+                    // Ignore non-js files
+                    if (!c.path.endsWith(".js")) {
+                        return;
+                    }
 
-                    const command = require(c.path); //Get the filepath for the command
+                    // Get the filepath for the command
+                    const command = require(c.path);
 
-                    var commandName = c.path.replace(/^.*[\\\/]/, '').split(".js"); //Get the name of the file
+                    // Get the name of the file
+                    var commandName = c.path.replace(/^.*[\\\/]/, '').split(".js");
 
-                    if (!client.categories.get(command.category)) { //Add the category to the list
+                    // Add the category to the list
+                    if (!client.categories.get(command.category)) {
                         client.categories.set(command.category);
-                    };
+                    }
 
-                    if (!client.commands.get(commandName[0], command)) { //Add the command to the list
+                    // Add the command to the list
+                    if (!client.commands.get(commandName[0], command)) {
                         client.commands.set(commandName[0], command);
 
-                        reloaded.push(commandName[0]); //Add the command name to the array
-                    };
+                        // Add the command name to the array
+                        reloaded.push(commandName[0]);
+                    }
                 }).on('end', () => {
-                    if (!reloaded[0]) { //Send an error if there weren't any new commands found
+                    // Send an error if there weren't any new commands found
+                    if (!reloaded[0]) {
                         return msg.channel.send("No new commands were found");
-                    };
+                    }
 
-                    return msg.channel.send(`Successfully loaded \`\`\`${reloaded.join(", ")}\`\`\``) //Send a success message when all commands are loaded
+                    // Send a success message when all commands are loaded
+                    return msg.channel.send(`Successfully loaded \`\`\`${reloaded.join(", ")}\`\`\``);
                 });
         };
 
-        function reloadCmd() { //Run if there was a command specified
-            const cmd = client.commands.get(args.join(" ").toLowerCase()) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(args.join(" ").toLowerCase())); //Find the given command in the list
+        // Run if there was a command specified
+        function reloadCmd() {
+            // Find the given command in the list
+            const cmd = client.commands.get(args.join(" ").toLowerCase()) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(args.join(" ").toLowerCase()));
 
-            if (!cmd) { //Ignore the message if it doesn't include a valid command
+            // Ignore the message if it doesn't include a valid command
+            if (!cmd) {
                 return msg.channel.send("That's not a command!");
-            };
+            }
 
-            klaw("./commands") //Run through the commands folder
+            // Run through the commands folder
+            klaw("./commands")
                 .on('data', c => {
-                    if (!c.path.endsWith(".js")) return; //Ignore non-js files
+                    // Ignore non-js files
+                    if (!c.path.endsWith(".js")) {
+                        return;
+                    }
 
-                    var commandName = c.path.replace(/^.*[\\\/]/, '').split(".js"); //Get the name of the file
+                    // Get the name of the file
+                    var commandName = c.path.replace(/^.*[\\\/]/, '').split(".js");
 
-                    if (commandName[0] === cmd.name) { //Make sure the command found is the one specified
+                    // Make sure the command found is the one specified
+                    if (commandName[0] === cmd.name) {
                         try {
-                            delete require.cache[require.resolve(c.path)]; //Delete the command from the cache
+                            // Delete the command from the cache
+                            delete require.cache[require.resolve(c.path)];
 
-                            const newCommand = require(c.path); //Require the command
+                            // Require the command
+                            const newCommand = require(c.path);
 
-                            client.commands.set(commandName[0], newCommand); //Set the command in the collection
+                            // Set the command in the collection
+                            client.commands.set(commandName[0], newCommand);
 
                             return msg.channel.send(`Successfully reloaded **${commandName[0]}**!`);
                         } catch (error) {
                             return msg.channel.send(`Looks like there was an error reloading **${commandName[0]}**!`);
-                        };
-                    } else { //Return if the command isn't the one specified
+                        }
+                    } else {
+                        //Return if the command isn't the one specified
                         return;
-                    };
+                    }
                 });
         };
     },

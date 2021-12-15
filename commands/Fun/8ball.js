@@ -5,7 +5,8 @@ module.exports = {
     usage: '`{prefix}8ball <question>`',
     examples: '`{prefix}8ball am I the best Discord bot?`',
 	async execute(msg, args) {
-		const answer = [ //List of possible replies
+		// List of possible replies
+		const answer = [
 			'It is certain',
 			'It is decidedly so',
 			'Without a doubt',
@@ -30,8 +31,9 @@ module.exports = {
 
 		if (!args[0]) {
 			return msg.channel.send("You didn't give me a question!");
-		};
+		}
 
-		return msg.channel.send(answer[Math.floor(Math.random() * answer.length)]); //Choose a random reply from the list
+		// Choose a random reply from the list
+		return msg.channel.send(answer[Math.floor(Math.random() * answer.length)]);
 	},
 };

@@ -1,6 +1,6 @@
 const {
     inspect
-} = require("util")
+} = require("util");
 
 module.exports = {
     name: 'eval',
@@ -11,7 +11,7 @@ module.exports = {
     async execute(msg, args) {
         if (!args[0]) {
             return msg.channel.send("You need to give me something to eval!");
-        };
+        }
 
         var mess = await msg.channel.send("Executing code...");
 
@@ -22,11 +22,11 @@ module.exports = {
 
             if (toEval.includes(client.token)) {
                 toEval = toEval.replace(client.token, "-snip-");
-            };
+            }
 
             mess.edit(`**INPUT:**\n\`\`\`js\n${args.join(" ")}\`\`\`\n**OUTPUT:**\n\`\`\`js\n${toEval}\`\`\``);
         } catch (error) {
             mess.edit(`**INPUT:**\n\`\`\`js\n${args.join(" ")}\`\`\`\n**OUTPUT:**\n\`\`\`js\n${error}\`\`\``);
-        };
+        }
     },
 };

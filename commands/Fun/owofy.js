@@ -7,33 +7,36 @@ module.exports = {
     usage: '`{prefix}owofy` or `{prefix}owofy <text>`',
     examples: '`{prefix}owofy never gonna give you up`',
     async execute(msg, args) {
-        if (!args.join(" ")) { //If no message was provided
-            await msg.channel.messages.fetch({ //Get the last message sent
-                    limit: 2
-                }).then(message => {
-                    var text = owofy(message.last().content, "uwu");
+        // If no message was provided
+        if (!args.join(" ")) {
+            // Get the last message sent
+            await msg.channel.messages.fetch({
+                limit: 2
+            }).then(message => {
+                var text = owofy(message.last().content, "uwu");
 
-                    for (let i = 0; i < text.length; i += 2000) { //Split the message if it's over 2000 characters
-                        var toSend = text.substring(i, Math.min(text.length, i + 2000));
+                // Split the message if it's over 2000 characters
+                for (let i = 0; i < text.length; i += 2000) {
+                    var toSend = text.substring(i, Math.min(text.length, i + 2000));
 
-                        msg.channel.send(toSend);
-                    };
+                    msg.channel.send(toSend);
+                }
 
-                    return;
-                })
-                .catch(e => {
-                    return msg.channel.send("I couldn't find the last message sent. Try running the command again!");
-                });
+                return;
+            }).catch(e => {
+                return msg.channel.send("I couldn't find the last message sent. Try running the command again!");
+            });
         } else {
             var text = owofy(args.join(" "), "uwu");
 
-            for (let i = 0; i < text.length; i += 2000) { //Split the message if it's over 2000 characters
+            // Split the message if it's over 2000 characters
+            for (let i = 0; i < text.length; i += 2000) {
                 var toSend = text.substring(i, Math.min(text.length, i + 2000));
 
                 msg.channel.send(toSend);
 
                 return;
-            };
-        };
+            }
+        }
     },
 };

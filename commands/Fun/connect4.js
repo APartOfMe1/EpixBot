@@ -31,7 +31,8 @@ module.exports = {
             ["⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️", "⏺️"]
         ];
 
-        var user2 = msg.guild.members.cache.find(e => e.displayName.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.guild.members.cache.find(e => e.user.username.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.mentions.users.first() || client.users.cache.get(args[0]); //Find a user by username, nickname, mention, or id
+        // Find a user by username, nickname, mention, or id
+        var user2 = msg.guild.members.cache.find(e => e.displayName.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.guild.members.cache.find(e => e.user.username.toLowerCase().includes(args.join(" ").toLowerCase())) || msg.mentions.users.first() || client.users.cache.get(args[0]);
 
         var turnId = msg.author.id;
 
@@ -39,34 +40,42 @@ module.exports = {
 
         if (playing.includes(msg.channel.id)) {
             return msg.channel.send("It looks like another game is already going on in this channel!");
-        };
+        }
 
-        if (!user2 || !args[0]) { //Make sure a user was given
+        // Make sure a user was given
+        if (!user2 || !args[0]) {
             return msg.channel.send("You need to mention a user to play against!");
-        };
+        }
 
-        playing.push(msg.channel.id); //Add the channel to the array of currently playing channels
+        // Add the channel to the array of currently playing channels
+        playing.push(msg.channel.id);
 
         var acceptMsg = await msg.channel.send(`${user2}, ${msg.guild.members.cache.get(msg.author.id).displayName} wants to play connect 4 with you! To join, type \`accept\`. ${msg.guild.members.cache.get(user2.id).displayName} has one minute to join`);
 
         const msgFilter = m => m.author.id === user2.id && m.content.toLowerCase() === 'accept';
 
-        msg.channel.awaitMessages(msgFilter, { //Wait for the user to accept the invite
+        // Wait for the user to accept the invite
+        msg.channel.awaitMessages(msgFilter, {
             max: 1,
             time: 60000,
             errors: ['time']
         }).then(async collected => {
-            var c4Msg = await msg.channel.send("Starting connect 4..."); //Send a message that will be used for the game
+            // Send a message that will be used for the game
+            var c4Msg = await msg.channel.send("Starting connect 4...");
 
-            reactionsArr.forEach(reaction => { //React to the new message with everything in the reactions array
+            // React to the new message with everything in the reactions array
+            reactionsArr.forEach(reaction => {
                 c4Msg.react(reaction);
             });
 
-            return makeMove(turn, c4Msg, grid, user2, turnId); //Start the game
+            // Start the game
+            return makeMove(turn, c4Msg, grid, user2, turnId);
         }).catch(e => {
-            playing.splice(playing.findIndex(g => g === msg.channel.id), 1); //Remove the channel from the list
+            // Remove the channel from the list
+            playing.splice(playing.findIndex(g => g === msg.channel.id), 1);
 
-            acceptMsg.edit(`Looks like ${msg.guild.members.cache.get(user2.id).displayName} doesn't want to play right now :(`); //Send an error if the user doesn't respond in time
+            // Send an error if the user doesn't respond in time
+            acceptMsg.edit(`Looks like ${msg.guild.members.cache.get(user2.id).displayName} doesn't want to play right now :(`);
         });
 
         function makeMove(turn, c4Msg, grid, user2, turnId) {
@@ -74,12 +83,15 @@ module.exports = {
 
             var formatted = [];
 
-            grid.forEach(row => { //Join the arrays
+            // Join the arrays
+            grid.forEach(row => {
                 formatted.push(row.join(""));
             });
 
-            if (grid[0].every(i => [emojis.c4Red, emojis.c4Yellow].includes(i))) { //Check for a tie
-                playing.splice(playing.findIndex(g => g === msg.channel.id), 1); //Remove the channel from the list
+            // Check for a tie
+            if (grid[0].every(i => [emojis.c4Red, emojis.c4Yellow].includes(i))) {
+                // Remove the channel from the list
+                playing.splice(playing.findIndex(g => g === msg.channel.id), 1);
 
                 var tieEmb = new Discord.MessageEmbed()
                     .setColor(config.embedColor)
@@ -92,10 +104,11 @@ module.exports = {
                 return c4Msg.edit("", {
                     embeds: [tieEmb]
                 });
-            };
+            }
 
             if (checkWin(grid, turn)) {
-                playing.splice(playing.findIndex(g => g === msg.channel.id), 1); //Remove the channel from the list
+                // Remove the channel from the list
+                playing.splice(playing.findIndex(g => g === msg.channel.id), 1);
 
                 var endEmb = new Discord.MessageEmbed()
                     .setColor(config.embedColor)
@@ -108,7 +121,7 @@ module.exports = {
                 return c4Msg.edit("", {
                     embeds: [endEmb]
                 });
-            };
+            }
 
             var gameEmb = new Discord.MessageEmbed()
                 .setColor(config.embedColor)
@@ -121,19 +134,24 @@ module.exports = {
                 embeds: [gameEmb]
             });
 
-            c4Msg.awaitReactions(filter, { //Wait for the current player to react
-                    max: 1,
-                    time: 30000,
-                    errors: ['time']
-                })
+            // Wait for the current player to react
+            c4Msg.awaitReactions(filter, {
+                max: 1,
+                time: 30000,
+                errors: ['time']
+            })
                 .then(collected => {
-                    var move = collected.first().emoji.name; //Figure out which spot the user wants to play on
+                    // Figure out which spot the user wants to play on
+                    var move = collected.first().emoji.name;
 
-                    var newGrid = drop(move.split("")[0] - 1, grid, turn); //Drop the piece
+                    // Drop the piece
+                    var newGrid = drop(move.split("")[0] - 1, grid, turn);
 
-                    collected.first().emoji.reaction.users.remove(turnId); //Remove the user's reaction
+                    // Remove the user's reaction
+                    collected.first().emoji.reaction.users.remove(turnId);
 
-                    if (turn === emojis.c4Red) { //Advance to the next turn
+                    // Advance to the next turn
+                    if (turn === emojis.c4Red) {
                         turn = emojis.c4Yellow;
 
                         turnId = user2.id;
@@ -141,14 +159,16 @@ module.exports = {
                         turn = emojis.c4Red;
 
                         turnId = msg.author.id;
-                    };
+                    }
 
                     return makeMove(turn, c4Msg, newGrid, user2, turnId);
                 })
-                .catch(e => { //If the current player ran out of time
-                    var loser = msg.guild.members.cache.get(turnId).displayName; //Get the loser
+                .catch(e => {
+                    // Get the loser
+                    var loser = msg.guild.members.cache.get(turnId).displayName;
 
-                    if (turn === emojis.c4Red) { //Advance to the next turn
+                    // Advance to the next turn
+                    if (turn === emojis.c4Red) {
                         turn = emojis.c4Yellow;
 
                         turnId = user2.id;
@@ -156,11 +176,13 @@ module.exports = {
                         turn = emojis.c4Red;
 
                         turnId = msg.author.id;
-                    };
+                    }
 
-                    var winner = msg.guild.members.cache.get(turnId).displayName; //Get the winner
+                    // Get the winner
+                    var winner = msg.guild.members.cache.get(turnId).displayName;
 
-                    playing.splice(playing.findIndex(g => g === msg.channel.id), 1); //Remove the channel from the list
+                    // Remove the channel from the list
+                    playing.splice(playing.findIndex(g => g === msg.channel.id), 1);
 
                     var endEmb = new Discord.MessageEmbed()
                         .setColor(config.embedColor)
@@ -174,19 +196,20 @@ module.exports = {
                         embeds: [endEmb]
                     });
                 });
-        };
+        }
 
         function drop(move, grid, turn) {
-            for (let r = grid.length - 1; r >= 0; r--) { //Check each item in the column in reverse order. If the slot hasn't been filled, add a piece
+            // Check each item in the column in reverse order. If the slot hasn't been filled, add a piece
+            for (let r = grid.length - 1; r >= 0; r--) {
                 if (![emojis.c4Red, emojis.c4Yellow].includes(grid[r][move])) {
                     grid[r][move] = turn;
 
                     break;
-                };
-            };
+                }
+            }
 
             return grid;
-        };
+        }
 
         function is4InARow(a, b, c, d) {
             var piece1 = emojis.c4Red;
@@ -197,22 +220,22 @@ module.exports = {
                 return true;
             } else if (piece2 === a && piece2 === b && piece2 === c && piece2 === d) {
                 return true;
-            };
+            }
 
             return false;
-        };
+        }
 
         function checkWin(grid) {
-            //Check from left to right
+            // Check from left to right
             for (let r = 0; r < grid.length; r++) {
                 for (let i = 0; i < grid[r].length; i++) {
                     if (is4InARow(grid[r][i], grid[r][i + 1], grid[r][i + 2], grid[r][i + 3])) {
                         return true;
-                    };
-                };
-            };
+                    }
+                }
+            }
 
-            //Check vertically
+            // Check vertically
             for (let r = 0; r < grid.length; r++) {
                 for (let i = 0; i < grid[r].length; i++) {
                     let column = grid.map(e => e[i]);
@@ -220,10 +243,10 @@ module.exports = {
                     for (let c = 0; c < column.length; c++) {
                         if (is4InARow(column[c], column[c + 1], column[c + 2], column[c + 3])) {
                             return true;
-                        };
-                    };
-                };
-            };
+                        }
+                    }
+                }
+            }
 
             //Check forward diagonals
             for (let r = 0; r < grid.length; r++) {
@@ -231,23 +254,23 @@ module.exports = {
                     if (grid[r] && grid[r + 3]) {
                         if (is4InARow(grid[r][i], grid[r + 1][i - 1], grid[r + 2][i - 2], grid[r + 3][i - 3])) {
                             return true;
-                        };
-                    };
-                };
-            };
+                        }
+                    }
+                }
+            }
 
-            //Check backward diagonals
+            // Check backward diagonals
             for (let r = 0; r < grid.length; r++) {
                 for (let i = 0; i < grid[r].length; i++) {
                     if (grid[r] && grid[r + 3]) {
                         if (is4InARow(grid[r][i], grid[r + 1][i + 1], grid[r + 2][i + 2], grid[r + 3][i + 3])) {
                             return true;
-                        };
-                    };
-                };
-            };
+                        }
+                    }
+                }
+            }
 
             return false;
-        };
+        }
     },
 };

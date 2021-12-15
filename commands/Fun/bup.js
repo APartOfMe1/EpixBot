@@ -39,25 +39,31 @@ module.exports = {
                     }
                 ]
             });
-        };
+        }
 
-        const attach = msg.attachments.first(); //Get message attachments
+        // Get message attachments
+        const attach = msg.attachments.first();
 
-        if (!attach || !attach.url.endsWith(".mid")) { //Make sure the upload is valid
+        // Make sure the upload is valid
+        if (!attach || !attach.url.endsWith(".mid")) {
             return msg.channel.send("You need to make sure that your first upload is a midi file!");
-        };
+        }
 
         const name = attach.name.split(".mid").join("").trim();
 
-        var base = (process.platform === "win32") ? path.parse(midiPath).root : "/"; //Determine the platform and drive letter if on Windows
+        // Determine the platform and drive letter if on Windows
+        var base = (process.platform === "win32") ? path.parse(midiPath).root : "/";
 
         checkDiskSpace(base).then((diskSpace) => {
-            if (diskSpace.free < 10737418240) { //Make sure we always have at least 10gb of space free
+            // Make sure we always have at least 10gb of space free
+            if (diskSpace.free < 10737418240) {
                 return msg.channel.send("There are too many people converting files right now! Try again later");
-            };
+            }
 
-            msg.channel.send(`${emojis.loading} Processing... This could take a few minutes`).then((loadingMsg) => { //Send a loading message
-                var filename = genName(16); //Generate a random filename to avoid duplicate names
+            // Send a loading message
+            msg.channel.send(`${emojis.loading} Processing... This could take a few minutes`).then((loadingMsg) => {
+                // Generate a random filename to avoid duplicate names
+                var filename = genName(16);
 
                 download(attach.url, midiPath, {
                     filename: `${filename}.mid`
@@ -79,23 +85,28 @@ module.exports = {
                                     errors: ['time']
                                 })
                                 .then(collected => {
-                                    if (!msg.member.voice.channel) { //Make sure the user is in a VC
+                                    // Make sure the user is in a VC
+                                    if (!msg.member.voice.channel) {
                                         return msg.channel.send('You need to be in a voice channel!');
-                                    };
+                                    }
 
-                                    const perms = msg.member.voice.channel.permissionsFor(msg.client.user); //Get the bots' permissions for the current voice channel
-
-                                    if (!perms.has('CONNECT')) { //Make sure the bot can connect
+                                    // Get the bots' permissions for the current voice channel
+                                    const perms = msg.member.voice.channel.permissionsFor(msg.client.user);
+                                    
+                                    // Make sure the bot can connect
+                                    if (!perms.has('CONNECT')) {
                                         return msg.channel.send('I can\'t connect to this voice channel. Do I have the correct permissions?');
-                                    };
+                                    }
 
-                                    if (!perms.has('SPEAK')) { //Make sure the bot can transmit audio
+                                    // Make sure the bot can transmit audio
+                                    if (!perms.has('SPEAK')) {
                                         return msg.channel.send('I can\'t speak in this channel! Do I have the correct permissions?');
-                                    };
+                                    }
 
-                                    if (!perms.has('VIEW_CHANNEL')) { //Make sure the bot can view the channel
+                                    // Make sure the bot can view the channel
+                                    if (!perms.has('VIEW_CHANNEL')) {
                                         return msg.channel.send('I can\'t view this channel! Do I have the correct permissions?');
-                                    };
+                                    }
 
                                     try {
                                         fs.unlink(`${midiPath}/${filename}.mid`, function (err) {});
@@ -103,7 +114,7 @@ module.exports = {
                                         fs.unlink(`${mp3Path}/${filename}.mp3`, function (err) {});
                                     } catch (error) {
                                         return;
-                                    };
+                                    }
 
                                     return client.player.play(args.join(" "), msg.member.voice.channel, msg.channel, msg.author, false, bupMsg.attachments.first().url);
                                 }).catch(err => {
@@ -113,7 +124,7 @@ module.exports = {
                                         fs.unlink(`${mp3Path}/${filename}.mp3`, function (err) {});
                                     } catch (error) {
                                         return;
-                                    };
+                                    }
 
                                     return;
                                 });
@@ -126,15 +137,17 @@ module.exports = {
         });
 
         function genName(length) {
-            const characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"; //Define the character set
+            // Define the character set
+            const characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
             var final = "";
 
-            for (let i = 0; i < length; i++) { //Create a string with the specified length
+            // Create a string with the specified length
+            for (let i = 0; i < length; i++) {
                 final += characters[Math.floor(Math.random() * characters.length)];
-            };
+            }
 
             return final;
-        };
+        }
     },
 };
