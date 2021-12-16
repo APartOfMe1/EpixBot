@@ -8,7 +8,8 @@ module.exports = {
     category: 'Music',
     async execute(msg, args) {
         client.player.getQueue(msg.guild.id).then(queue => {
-            const nowPlaying = queue.songs[0]; //Get the currently playing song
+            // Get the currently playing song
+            const nowPlaying = queue.songs[0];
 
             const embed = new Discord.MessageEmbed()
                 .setColor(config.embedColor)
@@ -33,35 +34,42 @@ module.exports = {
         });
 
         function createSlider(current, total) {
-            var slider = []; //Create am empty array
+            var slider = [];
 
-            var percent = (100 * current) / total; //Get the percentage of the song played
+            // Get the percentage of the song played
+            var percent = (100 * current) / total;
 
-            percent = Math.round(percent / 10) * 10; //Round the percentage to the nearest 10
+            // Round the percentage to the nearest 10
+            percent = Math.round(percent / 10) * 10;
 
-            var front = (percent / 10) - 1; //Calculate how many dashes are needed in front
+            // Calculate how many dashes are needed in front
+            var front = (percent / 10) - 1;
 
-            var back = 10 - (percent / 10); //Calculate how many dashes are needed in the back
+            // Calculate how many dashes are needed in the back
+            var back = 10 - (percent / 10);
 
             var i = 0;
 
-            while (i < front) { //Add the necessary amount of dashes to the array
+            // Add the necessary amount of dashes to the array
+            while (i < front) {
                 ++i;
 
                 slider.push("▬");
-            };
+            }
 
             slider.push("🔘");
 
             i = 0;
 
-            while (i < back) { //Add the necessary amount of dashes to the end of the array. The total amount of items in the array should always be 10
+            // Add the necessary amount of dashes to the end of the array
+            // The total amount of items in the array should always be 10
+            while (i < back) {
                 ++i;
 
                 slider.push("▬");
-            };
+            }
 
             return slider.join("");
-        };
+        }
     },
 };

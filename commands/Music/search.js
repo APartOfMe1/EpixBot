@@ -8,51 +8,55 @@ module.exports = {
     category: 'Music',
     cooldown: 2500,
     async execute(msg, args) {
-        if (!msg.member.voice.channel) { //Make sure the user is in a VC
+        if (!msg.member.voice.channel) {
             return msg.channel.send('You need to be in a voice channel!');
-        };
+        }
 
-        const perms = msg.member.voice.channel.permissionsFor(msg.client.user); //Get the bots' permissions for the current voice channel
+        const perms = msg.member.voice.channel.permissionsFor(msg.client.user);
 
-        if (!perms.has('CONNECT')) { //Make sure the bot can connect
+        if (!perms.has('CONNECT')) {
             return msg.channel.send('I can\'t connect to this voice channel. Do I have the correct permissions?');
-        };
+        }
 
-        if (!perms.has('SPEAK')) { //Make sure the bot can transmit audio
+        if (!perms.has('SPEAK')) {
             return msg.channel.send('I can\'t speak in this channel! Do I have the correct permissions?');
-        };
+        }
 
-        if (!perms.has('VIEW_ChANNEL')) { //Make sure the bot can view the channel
+        if (!perms.has('VIEW_ChANNEL')) {
             return msg.channel.send('I can\'t view this channel! Do I have the correct permissions?');
-        };
+        }
 
-        if (!args[0]) { //Make sure the bot is actually given a song to search for
+        if (!args[0]) {
             return msg.channel.send("You need to give me a song to search for!");
-        };
+        }
 
-        ytsr(args.join(" "), { //Search for youtube videos with the given arguments
+        // Search for youtube videos with the given arguments
+        ytsr(args.join(" "), {
             limit: 10
         }).then(async searchResults => {
-            if (!searchResults.items.length) { //Check if there were no results at all
+            // Check if there were no results at all
+            if (!searchResults.items.length) {
                 return msg.channel.send("I couldn't find any results for that search!");
-            };
+            }
 
             var sortedResults = [];
 
             var i = 0;
 
-            for (const song of searchResults.items) { //Check each result
-                if (song.title !== "Related to your search" && song.duration !== undefined) { //Make sure the entry isn't a "related search" thing
+            // Check each result
+            for (const song of searchResults.items) {
+                // Make sure the entry isn't a "related search" thing
+                if (song.title !== "Related to your search" && song.duration !== undefined) {
                     i++;
 
-                    sortedResults.push({ //Add the video to the array
+                    sortedResults.push({
                         title: song.title,
                         url: song.url,
                         duration: song.duration,
                         formatted: `**${i}** | [${song.title}](${song.url}) | ${song.duration}`
                     });
-                };
-            };
+                }
+            }
 
             const resultsEmb = new Discord.MessageEmbed()
                 .setTitle(`Results for "${args.join(" ")}"`)
@@ -75,13 +79,15 @@ module.exports = {
                     return searchMsg.edit("Cancelled", {
                         embeds: [null]
                     });
-                };
+                }
 
-                var result = sortedResults[collected.first().content - 1]; //Get the correct item in the array
-                
-                client.player.play(result.url, msg.member.voice.channel, msg.channel, msg.author); //Play the song / Add to the queue
+                // Get the correct item in the array
+                var result = sortedResults[collected.first().content - 1];
 
-                searchMsg.delete(); //Delete the message
+                // Play the song / Add to the queue
+                client.player.play(result.url, msg.member.voice.channel, msg.channel, msg.author);
+
+                searchMsg.delete();
             }).catch(e => {
                 return searchMsg.edit("No answer was given", {
                     embeds: [null]

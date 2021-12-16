@@ -5,13 +5,13 @@ module.exports = {
     examples: "`{prefix}seek 4:20`",
     category: 'Music',
     async execute(msg, args) {
-        if (!msg.member.voice.channel) { //Make sure the user is in a VC
+        if (!msg.member.voice.channel) {
             return msg.channel.send('You need to be in a voice channel!');
-        };
+        }
 
         if (!args[0]) {
             return msg.channel.send("You need to give a time to go to!");
-        };
+        }
 
         client.player.seek(msg.guild.id, args[0], msg.member.voice.channel, msg.channel).then(response => {
             return msg.channel.send(response);
