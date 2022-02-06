@@ -2,12 +2,17 @@ const Discord = require("discord.js");
 const config = require("../../../config/config.json");
 const chalk = require("chalk");
 const klaw = require('klaw');
+const routes = require('discord-api-types/v9');
+const Rest = require('@discordjs/rest');
+const rest = new Rest.REST({ version: '9' }).setToken(config.token);
 
 module.exports = {
     async addCommands(filepath) {
         client.commands = new Discord.Collection(); // A list of all commands
 
         client.categories = new Discord.Collection(); // A list of all categories
+
+        const slashCommands = [];
 
         klaw(filepath) // Run through the commands folder and all subfolders
             .on('data', c => {
@@ -25,10 +30,37 @@ module.exports = {
 
                 client.commands.set(commandName[0], command); // Add the command to the list
 
+                // Check if it's a slash command
+                if (command.slashOptions) {
+                    var slash = command.slashOptions;
+
+                    if (!slash.name) {
+                        slash.setName(commandName[0].toLowerCase());
+                    }
+
+                    if (!slash.description) {
+                        slash.setDescription(command.description);
+                    }
+
+                    slashCommands.push(slash);
+                }
+
                 // console.log(`Loaded ${commandName[0]}`); // Used for testing. Enable if you want spam in your console on startup
             })
-            .on('end', () => {
+            .on('end', async () => {
                 console.log(chalk.keyword('yellow')(`Successfully loaded ${client.commands.size} commands and ${client.categories.size} categories!`));
+
+                if (config.useGuildSlashCommands) {
+                    await rest.put(
+                        routes.Routes.applicationGuildCommands(client.user.id, config.slashCommandGuild),
+                        { body: slashCommands },
+                    );
+                } else {
+                    await rest.put(
+                        routes.Routes.applicationCommands(client.user.id),
+                        { body: slashCommands },
+                    );
+                }
 
                 this.finalize(); // Execute after commands are loaded. Finish bootup
             });

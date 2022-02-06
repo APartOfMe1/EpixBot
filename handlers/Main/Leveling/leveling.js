@@ -1,4 +1,5 @@
 const cooldown = new Set();
+const Discord = require("discord.js");
 
 module.exports = {
     handleLvl(msg) {

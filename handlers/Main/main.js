@@ -10,6 +10,8 @@ global.client = new Discord.Client({intents: [
     Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
     Discord.Intents.FLAGS.GUILD_VOICE_STATES,
 ]});
+const { SlashCommandBuilder } = require('@discordjs/builders');
+client.slashCommand = SlashCommandBuilder;
 const fs = require("fs");
 const path = require("path");
 const startup = require("./Startup/startup.js");
@@ -140,12 +142,20 @@ client.on("messageCreate", msg => {
 
     phone.handlePhoneMsg(msg);
 
-    return cmdhandler.handleCommand(msg); // Check if the command is valid and execute it
+    return cmdhandler.handleCommandMsg(msg); // Check if the command is valid and execute it
+});
+
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isCommand()) {
+        return;
+    }
+
+	return cmdhandler.handleCommandInteraction(interaction);
 });
 
 client.on("messageUpdate", (oldmsg, newmsg) => {
     if (allowDbUsage) {
-        cmdhandler.handleCommand(newmsg);
+        cmdhandler.handleCommandMsg(newmsg);
 
         return logging.edited(oldmsg, newmsg);
     };

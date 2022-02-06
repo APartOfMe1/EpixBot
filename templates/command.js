@@ -11,8 +11,10 @@ module.exports = {
     aliases: ["some-other-name", "test"], // An array of command aliases. This should always be an array even if you only have one alias
     cooldown: 2500, // Command cooldown time in ms
     allowAllUsers: false, // In commands under the Administration category, allow all users access. This will, for example, allow you to have a command that doesn't show up in the help menu
+    slashOptions: new client.slashCommand(), // Options for slash commands. This must be passed a slash command builder. You can use "new client.slashCommand()" to avoid having to import the module
+    slashOnly: true, // Whether the command must be initiated with an interaction. Defaults to true if slashOnly is null but slashOptions is not
     // Obviously this is required as well, I just think it looks better at the bottom
-    async execute(msg, args) {
+    async execute(msg, args /*, interaction*/) { // If the command is executed in response to a message, msg and args will be passed. Otherwise, interaction is passed as the sole parameter
         // Actual command code
     },
 };
