@@ -11,11 +11,11 @@ module.exports = {
 
 		if (config.invite) {
 			invite = `Invite me to your server! ${config.invite}`;
-		};
+		}
 
 		if (config.supportLink) {
 			server = `\n\nYou can also join my support server by clicking this link: ${config.supportLink}`;
-		};
+		}
 
 		return msg.channel.send(`${invite}${server}`);
 	},

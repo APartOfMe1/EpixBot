@@ -9,7 +9,7 @@ module.exports = {
             var lbToCheck = "global";
         } else {
             var lbToCheck = "guild";
-        };
+        }
 
         if (args[1] && parseInt(args[1]) && parseInt(args[1]) !== 1) { // Check if the user wants to view a specific page on the leaderboard
             var page = parseInt(args[1]);
@@ -17,13 +17,13 @@ module.exports = {
             var page = parseInt(args[0]);
         } else {
             var page = 1;
-        };
+        }
 
         if (lbToCheck === "global") {
             var sorted = client.db.credits.array().sort((a, b) => b.credits - a.credits).splice((page * 10) - 10, (page * 10)); // Get the credits for the current page of users
         } else {
             var sorted = client.db.points.filter(p => p.guild === msg.guild.id).array().sort((a, b) => b.points - a.points).splice((page * 10) - 10, (page * 10)); // Get the points of each member in the guild, sort by amount of points, and get the users specified by the page number
-        };
+        }
 
         const top10 = []; // Create an empty array to store the guild member and point info
 
@@ -51,7 +51,7 @@ module.exports = {
                     authorRank = i; // Set the authors rank
 
                     authorlvl = `${data.level} (${data.points} points)`; // Set the authors level
-                };
+                }
 
                 top10.push(`#${i}   ${member.displayName} \n${data.points} points (level ${data.level})`); // Format correctly and push to the array
             } else if (lbToCheck === "global" && data.credits && user) {
@@ -60,18 +60,18 @@ module.exports = {
                 globalStanding = sorted.filter(i => i.user === msg.author.id); // Get the user's standing
 
                 top10.push(`#${i}   ${user.tag} \n${data.credits} credits`); // Format correctly and push to the array
-            };
-        };
+            }
+        }
 
         if (!top10.length) { // Make sure the leaderboard doesn't show up as blank
             top10.push("\nNo data to display");
-        };
+        }
 
         if (lbToCheck === "guild") { // Determine how to format the message
             var message = `\`\`\`md\n< Top Users in ${msg.guild} > \n${top10.splice(0, 10).join("\n\n")} \n------------------------------------- \n> Your Stats \nRank: ${authorRank}   Level: ${authorlvl}\`\`\``;
         } else {
             var message = `\`\`\`md\n< Global Monetary Leaderboard > \n${top10.splice(0, 10).join("\n\n")} \n------------------------------------- \n> Your Stats \nGlobal rank: ${sorted.indexOf(globalStanding[0]) + 1}\`\`\``;
-        };
+        }
 
         return msg.channel.send(message);
     },

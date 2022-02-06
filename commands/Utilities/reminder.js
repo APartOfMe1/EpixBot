@@ -31,7 +31,7 @@ module.exports = {
             return msg.channel.send({
                 embeds: [helpEmb]
             });
-        };
+        }
 
         for (const opt of optsArr) { // Run through every word and check if it's the time or recurring parameter
             for (const item of reminder) {
@@ -51,9 +51,9 @@ module.exports = {
                     };
 
                     reminder = reminder.join(" ").replace(item, "").trim().split(" "); // Remove the parameter from the message
-                };
-            };
-        };
+                }
+            }
+        }
 
         reminder = reminder.join(" ");
 
@@ -61,11 +61,11 @@ module.exports = {
             time = getTime(args[0]);
 
             reminder = reminder.replace(args[0], "").trim();
-        };
+        }
 
         if (!time || !time.total || !reminder) {
             return msg.channel.send(`I need both a time and message to set a reminder! To see available options, type \`${config.prefix}reminder help\``);
-        };
+        }
 
         if (!recurring || !recurring.total) { // Try a secondary method of getting the recurring time if the standard format wasn't followed
             recurring = getTime(args[1]);
@@ -74,8 +74,8 @@ module.exports = {
                 recurring.total = false;
             } else {
                 reminder = reminder.replace(args[1], "").trim();
-            };
-        };
+            }
+        }
 
         const uniqueId = genId(16);
 
@@ -110,13 +110,13 @@ module.exports = {
             remindEmb.addField("Recurring", "false", true);
         } else {
             remindEmb.addField("Recurring", replaceTime(recurring.printed.join(" ")), true);
-        };
+        }
 
         if (reminder.length > 2000) { // Make sure we aren't going over the character limit
             remindEmb.addField("Reminder Message", reminder.substr(0, 1950) + "...", true);
         } else {
             remindEmb.addField("Reminder Message", reminder, true);
-        };
+        }
 
         return msg.channel.send({
             embeds: [remindEmb]
@@ -129,7 +129,7 @@ module.exports = {
 
             for (let i = 0; i < length; i++) { // Create a string with the specified length
                 final += characters[Math.floor(Math.random() * characters.length)];
-            };
+            }
 
             return final;
         };
@@ -163,18 +163,18 @@ module.exports = {
 
                 for (const i in obj) {
                     count += obj[i];
-                };
+                }
 
                 if (count === 0) {
                     return false;
                 } else {
                     return true;
-                };
+                }
             };
 
             if (t.includes(":")) { // If the time includes a colon, assume it's an invalid input
                 return fail();
-            };
+            }
 
             const printedTimes = [];
 
@@ -186,9 +186,9 @@ module.exports = {
                 for (const i of validTimes) {
                     if (t.endsWith(i) && parseInt(t.split(i)[0])) {
                         totals[i] += parseInt(t.split(i)[0]);
-                    };
-                };
-            };
+                    }
+                }
+            }
 
             if (!hasTime(totals)) { // Make sure we actually added a time at all
                 return fail();
@@ -197,7 +197,7 @@ module.exports = {
             for (const i in totals) {
                 if (totals[i] !== 0) { // Add the time plus the correct letter to the array
                     printedTimes.push(totals[i] + i);
-                };
+                }
 
                 switch (i) { // Convert to ms
                     case "y":
@@ -225,13 +225,13 @@ module.exports = {
 
                         break;
                 };
-            };
+            }
 
             if (totalMs < 30000) { // Make sure the total time is at least 30s
                 printedTimes[printedTimes.findIndex(t => t.endsWith("s"))] = "30s";
 
                 totalMs = 30000;
-            };
+            }
 
             return {
                 total: totalMs,

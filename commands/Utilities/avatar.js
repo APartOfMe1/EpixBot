@@ -13,11 +13,11 @@ module.exports = {
 
         if (!member && args[0]) { // Send an error if no user was found
             return msg.channel.send('I couldn\'t find that user!');
-        };
+        }
 
         if (!args[0]) { // If no user was given, default to the message author
             member = msg.author;
-        };
+        }
 
         const embed = new Discord.MessageEmbed() // Set an embed with the avatar as an attachment
             .setTitle(`${client.users.cache.get(member.id).username}'s avatar!`)
