@@ -37,10 +37,14 @@ module.exports = {
                 cmdEmb.addField("Aliases", cmd.aliases.join(", "));
             }
 
-            if (client.db.settings.get(msg.guild.id).prefix) {
-                var prefix = client.db.settings.get(msg.guild.id).prefix;
+            if (cmd.slashOnly !== false) { // We want slashOnly to default to false if it's not given
+                var prefix = '/';
             } else {
-                var prefix = config.prefix;
+                if (client.db.settings.get(msg.guild.id).prefix) {
+                    var prefix = client.db.settings.get(msg.guild.id).prefix;
+                } else {
+                    var prefix = config.prefix;
+                }
             }
 
             if (cmd.usage) {
