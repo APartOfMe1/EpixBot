@@ -6,6 +6,8 @@
         "owners": [],
         "startupNotification": true,
         "debugMode": false,
+        "useGuildSlashCommands": false,
+        "slashCommandGuild" : "",
         "invite": "",
         "supportLink": "",
         "errorChannel": "",
