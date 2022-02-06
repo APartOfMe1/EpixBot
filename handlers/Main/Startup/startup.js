@@ -50,16 +50,18 @@ module.exports = {
             .on('end', async () => {
                 console.log(chalk.keyword('yellow')(`Successfully loaded ${client.commands.size} commands and ${client.categories.size} categories!`));
 
-                if (config.useGuildSlashCommands) {
-                    await rest.put(
-                        routes.Routes.applicationGuildCommands(client.user.id, config.slashCommandGuild),
-                        { body: slashCommands },
-                    );
-                } else {
-                    await rest.put(
-                        routes.Routes.applicationCommands(client.user.id),
-                        { body: slashCommands },
-                    );
+                if (slashCommands.length > 0) {
+                    if (config.useGuildSlashCommands) {
+                        await rest.put(
+                            routes.Routes.applicationGuildCommands(client.user.id, config.slashCommandGuild),
+                            { body: slashCommands },
+                        );
+                    } else {
+                        await rest.put(
+                            routes.Routes.applicationCommands(client.user.id),
+                            { body: slashCommands },
+                        );
+                    }
                 }
 
                 this.finalize(); // Execute after commands are loaded. Finish bootup
