@@ -13,16 +13,16 @@ module.exports = {
             if (args[0].toLowerCase() === 'dm') {
                 var helpMsg = generateMsg();
 
-                msg.react("✅"); //React to the message to let the user know the message was successfully sent
+                msg.react("✅"); // React to the message to let the user know the message was successfully sent
 
                 return msg.author.send(helpMsg.msg, {
                     embeds: [helpMsg.embed]
                 });
             };
 
-            const cmd = client.commands.get(args.join(" ").toLowerCase()) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(args.join(" ").toLowerCase())); //Find the given command in the list
+            const cmd = client.commands.get(args.join(" ").toLowerCase()) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(args.join(" ").toLowerCase())); // Find the given command in the list
 
-            if (!cmd || (cmd.category === "Administration" && !config.owners.includes(msg.author.id))) { //Ignore the message if it doesn't include a valid command
+            if (!cmd || (cmd.category === "Administration" && !config.owners.includes(msg.author.id))) { // Ignore the message if it doesn't include a valid command
                 return msg.channel.send("That's not a command!");
             };
 
@@ -71,29 +71,29 @@ module.exports = {
                 commands
             } = msg.client;
 
-            var cmdList = new Discord.Collection(); //Create a blank list
+            var cmdList = new Discord.Collection(); // Create a blank list
 
-            var emb = new Discord.MessageEmbed() //Set a new embed
+            var emb = new Discord.MessageEmbed() // Set a new embed
                 .setTitle(config.name + " Help")
                 .setDescription(`To run a command in ${msg.guild}, use \`${config.prefix}<command>\`. For example, \`${config.prefix}ping\`\n\nYou can also use \`${config.prefix}help <command>\` for detailed command info`)
                 .setColor(config.embedColor)
                 .setFooter(config.name, client.user.avatarURL());
 
             commands.forEach(command => {
-                const category = cmdList.get(command.category); //Get the category of the command
+                const category = cmdList.get(command.category); // Get the category of the command
 
                 if (command.category === "Administration" && !config.owners.includes(msg.author.id)) {
                     return;
                 };
 
                 if (category) {
-                    category.set(command.name, command); //If the category exists in the list, add the command
+                    category.set(command.name, command); // If the category exists in the list, add the command
                 } else {
-                    cmdList.set(command.category, new Discord.Collection().set(command.name, command)); //If the category doesn't exist in the list, add both the category and command
+                    cmdList.set(command.category, new Discord.Collection().set(command.name, command)); // If the category doesn't exist in the list, add both the category and command
                 };
             });
 
-            cmdList.map((category, name) => emb.addField(name, category.map(command => `\`${command.name}\``).join(", "), true)); //Add commands to the embed sorted by category
+            cmdList.map((category, name) => emb.addField(name, category.map(command => `\`${command.name}\``).join(", "), true)); // Add commands to the embed sorted by category
 
             return emb;
         };

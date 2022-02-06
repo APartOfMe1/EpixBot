@@ -11,27 +11,27 @@ module.exports = {
             var scanDir = "./";
 
             switch (opts) {
-                case "full": //Only filter out the other backup files
+                case "full": // Only filter out the other backup files
                     opts = (path, stat) => !/\.zip$/.test(path);
 
                     break;
 
-                case "minimal": //Filter out the gifs and .git folders since they take up a good amount of storage
+                case "minimal": // Filter out the gifs and .git folders since they take up a good amount of storage
                     opts = (path, stat) => !path.includes("node_modules") && !path.includes(".git") && !/\.zip$/.test(path) && !/\.gif$/.test(path);
 
                     break;
 
-                case "database": //We only want to get the database
+                case "database": // We only want to get the database
                     scanDir = "./data";
 
                     opts = (path, stat) => !path.includes("node_modules") && !/\.zip$/.test(path);
 
-                case "normal": //Filter out the node_modules and .git folders because we don't need them
+                case "normal": // Filter out the node_modules and .git folders because we don't need them
                     opts = (path, stat) => !path.includes("node_modules") && !path.includes(".git") && !/\.zip$/.test(path);
 
                     break;
 
-                default: //Filter out the node_modules and .git folders because we don't need them
+                default: // Filter out the node_modules and .git folders because we don't need them
                     opts = (path, stat) => !path.includes("node_modules") && !path.includes(".git") && !/\.zip$/.test(path);
 
                     break;

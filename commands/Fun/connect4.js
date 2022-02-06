@@ -248,7 +248,7 @@ module.exports = {
                 }
             }
 
-            //Check forward diagonals
+            // Check forward diagonals
             for (let r = 0; r < grid.length; r++) {
                 for (let i = grid[r].length; i >= 0; i--) {
                     if (grid[r] && grid[r + 3]) {

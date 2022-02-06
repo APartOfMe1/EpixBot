@@ -93,7 +93,7 @@ module.exports = {
                 totalCredits += 75000;
             }
 
-            if (Number.isInteger(client.db.credits.get(id, "streak") / 100) && client.db.credits.get(id, "streak") !== 0) { //Give a bonus 100 days
+            if (Number.isInteger(client.db.credits.get(id, "streak") / 100) && client.db.credits.get(id, "streak") !== 0) { // Give a bonus 100 days
                 // Add the bonus credits to their total
                 totalCredits += 25000;
             }
@@ -123,7 +123,7 @@ module.exports = {
 
             if ((time + 84600000) > currentDate) { // Check if it's been 23:30
                 return false;
-            } else if ((time + 172800000) < currentDate) { //Check if it's been 48 hours
+            } else if ((time + 172800000) < currentDate) { // Check if it's been 48 hours
                 return 'overTime';
             } else {
                 return true;

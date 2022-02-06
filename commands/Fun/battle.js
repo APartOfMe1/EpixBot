@@ -158,7 +158,7 @@ module.exports = {
                     .addField(`${msg.guild.members.cache.get(user2.id).displayName}'s Health`, `${health2}/100`, true)
                     .setFooter(config.name, client.user.avatarURL());
 
-                battleMsg.edit({ //Edit the message to show the embed
+                battleMsg.edit({ // Edit the message to show the embed
                     content: null,
                     embeds: [gameEmb]
                 });

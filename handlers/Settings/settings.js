@@ -14,7 +14,7 @@ module.exports = {
     selfroles: selfroles,
     autoroles: autoroles,
     ensureAll(id) {
-        const settings = client.db.settings.ensure(id, { //Make sure that the enmap has the default settings
+        const settings = client.db.settings.ensure(id, { // Make sure that the enmap has the default settings
             prefix: config.prefix,
             logs: "disabled"
         });
@@ -24,7 +24,7 @@ module.exports = {
             autorole: "Not set"
         });
 
-        if (settings.logs === undefined) { //Set logs as disabled if not found
+        if (settings.logs === undefined) { // Set logs as disabled if not found
             client.db.settings.set(id, "disabled", "logs");
         };
 

@@ -33,7 +33,7 @@ module.exports = {
             });
         };
 
-        for (const opt of optsArr) { //Run through every word and check if it's the time or recurring parameter
+        for (const opt of optsArr) { // Run through every word and check if it's the time or recurring parameter
             for (const item of reminder) {
                 if (item.toLowerCase().startsWith(opt)) {
                     const value = item.split(":")[1];
@@ -50,14 +50,14 @@ module.exports = {
                             break;
                     };
 
-                    reminder = reminder.join(" ").replace(item, "").trim().split(" "); //Remove the parameter from the message
+                    reminder = reminder.join(" ").replace(item, "").trim().split(" "); // Remove the parameter from the message
                 };
             };
         };
 
         reminder = reminder.join(" ");
 
-        if (!time || !time.total) { //If the standard format wasn't specified, try to use the first argument for the time
+        if (!time || !time.total) { // If the standard format wasn't specified, try to use the first argument for the time
             time = getTime(args[0]);
 
             reminder = reminder.replace(args[0], "").trim();
@@ -67,10 +67,10 @@ module.exports = {
             return msg.channel.send(`I need both a time and message to set a reminder! To see available options, type \`${config.prefix}reminder help\``);
         };
 
-        if (!recurring || !recurring.total) { //Try a secondary method of getting the recurring time if the standard format wasn't followed
+        if (!recurring || !recurring.total) { // Try a secondary method of getting the recurring time if the standard format wasn't followed
             recurring = getTime(args[1]);
 
-            if (!recurring || !recurring.total) { //Set the reminder param to false if it still wasn't specified
+            if (!recurring || !recurring.total) { // Set the reminder param to false if it still wasn't specified
                 recurring.total = false;
             } else {
                 reminder = reminder.replace(args[1], "").trim();
@@ -89,14 +89,14 @@ module.exports = {
             msg: reminder
         };
 
-        client.db.reminders.ensure(msg.author.id, { //Create the user in the db if they don't already exist
+        client.db.reminders.ensure(msg.author.id, { // Create the user in the db if they don't already exist
             userId: msg.author.id,
             reminders: []
         });
 
         client.db.reminders.push(msg.author.id, template, "reminders");
 
-        const replaceTime = s => { //Convert a string in ydhms format to full words
+        const replaceTime = s => { // Convert a string in ydhms format to full words
             return s.replace(/(?<![A-Z]|[a-z]| )y/g, " years").replace(/(?<![A-Z]|[a-z]| )d/g, " days").replace(/(?<![A-Z]|[a-z]| )h/g, " hours").replace("m", " minutes").replace(/(?<![A-Z]|[a-z]| )s/g, " seconds");
         };
 
@@ -112,7 +112,7 @@ module.exports = {
             remindEmb.addField("Recurring", replaceTime(recurring.printed.join(" ")), true);
         };
 
-        if (reminder.length > 2000) { //Make sure we aren't going over the character limit
+        if (reminder.length > 2000) { // Make sure we aren't going over the character limit
             remindEmb.addField("Reminder Message", reminder.substr(0, 1950) + "...", true);
         } else {
             remindEmb.addField("Reminder Message", reminder, true);
@@ -123,11 +123,11 @@ module.exports = {
         });
 
         function genId(length) {
-            const characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"; //Define the character set
+            const characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"; // Define the character set
 
             var final = "";
 
-            for (let i = 0; i < length; i++) { //Create a string with the specified length
+            for (let i = 0; i < length; i++) { // Create a string with the specified length
                 final += characters[Math.floor(Math.random() * characters.length)];
             };
 
@@ -158,7 +158,7 @@ module.exports = {
                 };
             };
 
-            const hasTime = obj => { //Check if any value in the object is greater than zero
+            const hasTime = obj => { // Check if any value in the object is greater than zero
                 let count = 0;
 
                 for (const i in obj) {
@@ -172,17 +172,17 @@ module.exports = {
                 };
             };
 
-            if (t.includes(":")) { //If the time includes a colon, assume it's an invalid input
+            if (t.includes(":")) { // If the time includes a colon, assume it's an invalid input
                 return fail();
             };
 
             const printedTimes = [];
 
-            var timeArr = t.split(/(?<=[a-z]|[A-Z])/g); //Split the message on each letter without removing said letter (3h20m to ["3h", "20m"] for example)
+            var timeArr = t.split(/(?<=[a-z]|[A-Z])/g); // Split the message on each letter without removing said letter (3h20m to ["3h", "20m"] for example)
 
             var totalMs = 0;
 
-            for (const t of timeArr) { //Add each time to the totals object
+            for (const t of timeArr) { // Add each time to the totals object
                 for (const i of validTimes) {
                     if (t.endsWith(i) && parseInt(t.split(i)[0])) {
                         totals[i] += parseInt(t.split(i)[0]);
@@ -190,16 +190,16 @@ module.exports = {
                 };
             };
 
-            if (!hasTime(totals)) { //Make sure we actually added a time at all
+            if (!hasTime(totals)) { // Make sure we actually added a time at all
                 return fail();
             };
 
             for (const i in totals) {
-                if (totals[i] !== 0) { //Add the time plus the correct letter to the array
+                if (totals[i] !== 0) { // Add the time plus the correct letter to the array
                     printedTimes.push(totals[i] + i);
                 };
 
-                switch (i) { //Convert to ms
+                switch (i) { // Convert to ms
                     case "y":
                         totalMs += (totals[i] * 31556952000);
 
@@ -227,7 +227,7 @@ module.exports = {
                 };
             };
 
-            if (totalMs < 30000) { //Make sure the total time is at least 30s
+            if (totalMs < 30000) { // Make sure the total time is at least 30s
                 printedTimes[printedTimes.findIndex(t => t.endsWith("s"))] = "30s";
 
                 totalMs = 30000;

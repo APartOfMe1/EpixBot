@@ -93,7 +93,7 @@ module.exports = {
                             return msg.channel.send(`Looks like there was an error reloading **${commandName[0]}**!`);
                         }
                     } else {
-                        //Return if the command isn't the one specified
+                        // Return if the command isn't the one specified
                         return;
                     }
                 });

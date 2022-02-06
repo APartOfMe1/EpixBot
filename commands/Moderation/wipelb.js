@@ -10,7 +10,7 @@ module.exports = {
         // Get the users in the guild
         const toRemove = client.db.points.filter(p => p.guild === msg.guild.id);
 
-        toRemove.forEach(data => { //Clear each member's points
+        toRemove.forEach(data => { // Clear each member's points
             client.db.points.delete(`${msg.guild.id}-${data.user}`);
         });
 
