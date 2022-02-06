@@ -8,35 +8,47 @@ module.exports = {
     category: 'Actions',
     usage: '`{prefix}action <action> @user` or `{prefix}action <action> username`',
     examples: '`{prefix}action bite @A part of me#0412` or `{prefix}action explode A part of me`',
-    async execute(msg, args) {
-        const actionArr = Object.keys(actions);
+    slashOptions: new client.slashCommand()
+        .addStringOption(o => {
+            o.setName('action')
+                .setDescription('The action to perform')
+                .setRequired(true);
 
-        if (!args[0] || !actions[args[0].toLowerCase()]) {
-            return msg.channel.send(`That's not a valid action! Here's a complete list:\n\n\`\`\`\n${actionArr.join(", ")}\`\`\``);
-        }
+            // Add each action as a choice
+            for (const i of Object.keys(actions)) {
+                // Convert the first letter to uppercase
+                o.addChoice(i.slice(0, 1).toUpperCase() + i.slice(1), i);
+            }
 
-        // Search for the member by mention, id, nickname, or username
-        let member = msg.mentions.users.first() || client.users.cache.get(args[1]) || msg.guild.members.cache.find(e => e.displayName.toLowerCase().includes(args.slice(1).join(" ").toLowerCase())) || msg.guild.members.cache.find(e => e.user.username.toLowerCase().includes(args.slice(1).join(" ").toLowerCase()));
+            return o;
+        })
+        .addUserOption(o => {
+            return o.setName('user')
+                .setDescription('The user to perform the action on')
+                .setRequired(true);
+        }),
+    async execute(interaction) {
+        // Uploading the image might take longer than 3 seconds, so we defer the reply
+        await interaction.deferReply();
 
-        // Send an error if no user was found
-        if (!member || !args[0]) {
-            return msg.channel.send('I couldn\'t find that user!');
-        }
+        // Get interaction options
+        const action = interaction.options.getString('action');
+        const user = interaction.options.getUser('user');
 
         // Get the members nickname
-        const nick = msg.guild.members.cache.get(member.id).displayName;
+        const nick = interaction.member.guild.members.cache.get(user.id).displayName || user.username;
 
         // Get the nickname of the message author
-        const auth = msg.guild.members.cache.get(msg.author.id).displayName;
+        const auth = interaction.member.nickname || interaction.user.username;
 
         // Set an array of all gifs in the folder
-        const gifArr = fs.readdirSync(dir + args[0].toLowerCase());
+        const gifArr = fs.readdirSync(dir + action);
 
         // Choose a random image from the list and send it as an attachment
-        const gif = `${dir}${args[0].toLowerCase()}/${gifArr[Math.floor(Math.random() * gifArr.length)]}`;
+        const gif = `${dir}${action}/${gifArr[Math.floor(Math.random() * gifArr.length)]}`;
 
-        msg.channel.send({
-            content: `**${auth}** ${actions[args[0].toLowerCase()]} **${nick}**!`,
+        return interaction.editReply({
+            content: `**${auth}** ${actions[action]} **${nick}**!`,
             files: [gif]
         });
     },
