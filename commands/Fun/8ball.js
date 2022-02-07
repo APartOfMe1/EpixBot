@@ -4,7 +4,13 @@ module.exports = {
 	category: 'Fun',
     usage: '`{prefix}8ball <question>`',
     examples: '`{prefix}8ball am I the best Discord bot?`',
-	async execute(msg, args) {
+	slashOptions: new client.slashCommand()
+        .addStringOption(o => {
+            return o.setName('question')
+                .setDescription('The question to ask')
+                .setRequired(true);
+        }),
+	async execute(interaction) {
 		// List of possible replies
 		const answer = [
 			'It is certain',
@@ -29,11 +35,7 @@ module.exports = {
 			'Very doubtful'
 		];
 
-		if (!args[0]) {
-			return msg.channel.send("You didn't give me a question!");
-		}
-
 		// Choose a random reply from the list
-		return msg.channel.send(answer[Math.floor(Math.random() * answer.length)]);
+		return interaction.reply(answer[Math.floor(Math.random() * answer.length)]);
 	},
 };

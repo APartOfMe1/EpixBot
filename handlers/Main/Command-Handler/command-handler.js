@@ -4,7 +4,7 @@ const config = require("../../../config/config.json");
 const cmdCooldown = new Set();
 
 module.exports = {
-    handleCommandInteraction(interaction) {
+    async handleCommandInteraction(interaction) {
         const cmd = client.commands.get(interaction.commandName) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(interaction.commandName)); // Get a list of commands and aliases
 
         if (!cmd) { // Ignore the message if it doesn't include a valid command
@@ -15,12 +15,20 @@ module.exports = {
             return;
         };
 
-        disabledCooldown(cmd, interaction.user.id, interaction.guildId).then(() => {
-            cmd.execute(interaction).catch(e => { // Execute the command
-                cmdError(e, cmd, interaction.guild).then(errEmb => {
-                    return interaction.reply({ // Send an error if needed
-                        embeds: [errEmb]
-                    });
+        disabledCooldown(cmd, interaction.user.id, interaction.guildId).then(async () => {
+            cmd.execute(interaction).catch(async e => { // Execute the command
+                cmdError(e, cmd, interaction.guild).then(async errEmb => {
+                    try {
+                        await interaction.reply({ // Send an error if needed
+                            embeds: [errEmb]
+                        });
+                    } catch (error) {
+                        await interaction.editReply({ // Send an error if needed
+                            content: null,
+                            components: [],
+                            embeds: [errEmb]
+                        });
+                    }
                 });
             });
         }).catch(e => {
@@ -108,7 +116,7 @@ function cmdError(e, cmd, guild) {
         });
     };
 
-    Promise.resolve(errEmb);
+    return Promise.resolve(errEmb);
 }
 
 function disabledCooldown(cmd, userId, guildId) {

@@ -3,6 +3,7 @@ const config = require("../../config/config.json");
 const {
     Aki
 } = require('aki-api');
+const currentGames = [];
 
 module.exports = {
     name: 'akinator',
@@ -10,35 +11,58 @@ module.exports = {
     category: 'Fun',
     aliases: ["aki"],
     cooldown: 30000,
-    async execute(msg, args) {
-        const reactions = [
-            "✅",
-            "❌",
-            "🤷‍♀️",
-            "👍",
-            "👎"
-        ];
-
-        const gameMsg = await msg.channel.send("Starting game...");
-
-        for (const r of reactions) {
-            await gameMsg.react(r);
+    slashOptions: new client.slashCommand(),
+    async execute(interaction) {
+        if (currentGames.includes(interaction.channelId)) {
+            return interaction.reply('There\'s already a game going on in this channel!');
         }
+
+        currentGames.push(interaction.channelId);
+
+        setTimeout(() => {
+            currentGames.splice(currentGames.indexOf(interaction.channelId), 1);
+        }, 3600000);
+
+        const row = new Discord.MessageActionRow()
+            .addComponents(
+                new Discord.MessageButton()
+                    .setCustomId('yes')
+                    .setStyle('SECONDARY')
+                    .setLabel('Yes'),
+                new Discord.MessageButton()
+                    .setCustomId('no')
+                    .setStyle('SECONDARY')
+                    .setLabel('No'),
+                new Discord.MessageButton()
+                    .setCustomId('dontKnow')
+                    .setStyle('SECONDARY')
+                    .setLabel('Don\'t Know'),
+                new Discord.MessageButton()
+                    .setCustomId('probably')
+                    .setStyle('SECONDARY')
+                    .setLabel('Probably'),
+                new Discord.MessageButton()
+                    .setCustomId('probablyNot')
+                    .setStyle('SECONDARY')
+                    .setLabel('Probably Not'),
+            );
+
+
+        await interaction.reply("Starting game...");
 
         const aki = new Aki("en");
 
         // Wait for the game to start
         await aki.start();
 
-        return newQuestion(gameMsg);
+        return newQuestion(interaction, interaction.id);
 
-        async function newQuestion(gameMsg) {
+        async function newQuestion(interaction, id) {
             // Check if the game is over
             if (aki.progress >= 70 || aki.currentStep >= 78) {
                 await aki.win();
 
-                // Remove all reactions
-                gameMsg.reactions.removeAll();
+                currentGames.splice(currentGames.indexOf(interaction.channelId), 1);
 
                 // Get the first result
                 const character = aki.answers[0];
@@ -49,12 +73,15 @@ module.exports = {
                     .setImage(character.absolute_picture_path)
                     .addField("Character", `\`\`\`Name: ${character.name}\nDescription: ${character.description}\nPopularity: ${character.ranking}\`\`\``, true)
                     .addField("Total Guesses", `\`\`\`${aki.currentStep}\`\`\``, true)
-                    .setFooter(`${config.name} | You have 45 seconds to make a choice`, client.user.avatarURL());
+                    .setFooter(`${config.name}`, client.user.avatarURL());
 
                 // Edit the message with the new embed
-                return gameMsg.edit({
+                return interaction.editReply({
                     content: null,
-                    embeds: [winEmb]
+                    components: [],
+                    embeds: [winEmb],
+                }).catch(e => {
+                    currentGames.splice(currentGames.indexOf(interaction.channelId), 1);
                 });
             }
 
@@ -63,73 +90,71 @@ module.exports = {
                 .setTitle(`Guess #${aki.currentStep}`)
                 .addField("Question", aki.question, true)
                 .addField("Progress", aki.progress.toString(), true)
-                .addField("Reactions", `Yes: ✅\nNo: ❌\nDon't Know: 🤷‍♀️\nProbably: 👍\nProbably Not: 👎`)
                 .setFooter(`${config.name} | You have 45 seconds to make a choice`, client.user.avatarURL());
 
             // Edit the message with the new embed
-            gameMsg.edit({
+            await interaction.editReply({
                 content: null,
-                embeds: [gameEmb]
+                embeds: [gameEmb],
+                components: [row]
+            }).catch(e => {
+                currentGames.splice(currentGames.indexOf(interaction.channelId), 1);
             });
 
-            // Make sure the reaction emoji is valid and the reactor is the message author
-            const reactionFilter = (r, u) => reactions.includes(r.emoji.name) && u.id === msg.author.id;
-            
-            gameMsg.awaitReactions({
-                reactionFilter,
-                max: 1,
-                time: 45000,
-                errors: ["time"]
-            }).then(async collected => {
-                // Remove the reaction
-                collected.first().emoji.reaction.users.remove(msg.author.id);
+            const buttonFilter = i => ['yes', 'no', 'dontKnow', 'probably', 'probablyNot'].includes(i.customId) && i.user.id === interaction.user.id && i.message.interaction.id === interaction.id;
 
-                // Check for the desired result
-                switch (collected.first().emoji.name) {
-                    case "✅":
+            interaction.channel.awaitMessageComponent({
+                buttonFilter,
+                componentType: 'BUTTON',
+                time: 45000
+            }).then(async i => {
+                i.deferUpdate();
+
+                switch (i.customId) {
+                    case 'yes':
                         await aki.step(0);
 
-                        newQuestion(gameMsg);
+                        newQuestion(i, id);
 
                         break;
 
-                    case "❌":
+                    case 'no':
                         await aki.step(1);
 
-                        newQuestion(gameMsg);
+                        newQuestion(i, id);
 
                         break;
 
-                    case "🤷‍♀️":
+                    case 'dontKnow':
                         await aki.step(2);
 
-                        newQuestion(gameMsg);
+                        newQuestion(i, id);
 
                         break;
 
-                    case "👍":
+                    case 'probably':
                         await aki.step(3);
 
-                        newQuestion(gameMsg);
+                        newQuestion(i, id);
 
                         break;
 
-                    case "👎":
+                    case 'probablyNot':
                         await aki.step(4);
 
-                        newQuestion(gameMsg);
+                        newQuestion(i, id);
 
                         break;
                 }
-            }).catch(e => {
-                // Remove all reactions
-                gameMsg.reactions.removeAll();
-
-                return gameMsg.edit({
+            }).catch(() => {
+                return interaction.editReply({
                     content: "The answer wasn't given in time!",
-                    embeds: []
+                    embeds: [],
+                    components: [],
+                }).catch(e => {
+                    currentGames.splice(currentGames.indexOf(interaction.channelId), 1);
                 });
-            })
+            });
         };
     },
 };
