@@ -9,64 +9,67 @@ module.exports = {
     description: 'Chat with the bot! Others can join in on the conversation by using the command themselves',
     aliases: ["cleverbot", "cb"],
     category: 'Fun',
-    async execute(msg, args) {
+    slashOptions: new client.slashCommand(),
+    async execute(interaction) {
         // Check if a chat is going on in the current channel
-        if (!isChatting.includes(msg.channel.id)) {
+        if (!isChatting.includes(interaction.channelId)) {
             // Set a blank array for the log. Interactions are logged to provide context later
             var log = [];
 
             // Add the channel to the array
-            isChatting.push(msg.channel.id);
+            isChatting.push(interaction.channelId);
 
-            chatters[msg.channel.id] = [];
+            chatters[interaction.channelId] = [];
 
             // Add the user to the array
-            chatters[msg.channel.id].push(msg.author.id);
+            chatters[interaction.channelId].push(interaction.user.id);
 
             const startEmb = new Discord.MessageEmbed()
                 .setColor(config.embedColor)
-                .setAuthor(`${msg.guild.members.cache.get(msg.author.id).displayName} started a chat. Say hi!`, msg.author.avatarURL())
-                .setDescription("Other members can join the conversation by running the command themselves! Use the command again to leave the conversation")
+                .setAuthor(`${interaction.member.guild.members.cache.get(interaction.user.id).displayName} started a chat. Say hi!`, interaction.user.displayAvatarURL())
+                .setDescription("Other members can join the conversation by running the command themselves!")
                 .setFooter(`${config.name} | The conversation will automatically time out in 30 minutes`, client.user.avatarURL());
 
-            msg.channel.send({
+            interaction.reply({
                 embeds: [startEmb]
             });
 
             // Actually start the chat
-            return chat(log);
-        } else if (isChatting.includes(msg.channel.id) && !chatters[msg.channel.id].includes(msg.author.id)) {
+            return chat(log, interaction);
+        } else if (isChatting.includes(interaction.channelId) && !chatters[interaction.channelId].includes(interaction.user.id)) {
             // Set a timeout so the bot doesn't respond to the command itself
             setTimeout(() => {
                 // Add the user to the array
-                chatters[msg.channel.id].push(msg.author.id);
+                chatters[interaction.channelId].push(interaction.user.id);
             }, 500);
 
             const joinEmb = new Discord.MessageEmbed()
                 .setColor(config.embedColor)
-                .setAuthor(msg.guild.members.cache.get(msg.author.id).displayName, msg.author.avatarURL())
-                .setTitle("You joined the chat! Use the command again to leave the conversation")
+                .setAuthor(interaction.member.guild.members.cache.get(interaction.user.id).displayName, interaction.user.displayAvatarURL())
+                .setTitle(`You joined the chat! Use '${config.prefix}leavechat' to leave the conversation`)
                 .setFooter(config.name, client.user.avatarURL());
 
-            msg.channel.send({
+            return interaction.reply({
                 embeds: [joinEmb]
             });
+        } else {
+            return interaction.reply('You\'re already in the conversation!');
         }
 
-        function chat(log) {
+        function chat(log, interaction) {
             const filter = m => m.content && chatters[m.channel.id].includes(m.author.id);
 
-            const collector = msg.channel.createMessageCollector({
+            const collector = interaction.channel.createMessageCollector({
                 filter,
                 time: 1800000
             });
 
             collector.on("collect", m => {
-                if (m.content.toLowerCase() === `${config.prefix}chat` || m.content.toLowerCase() === `${client.db.settings.get(msg.guild.id).prefix}chat`) {
-                    removeUser(m.author);
+                if (m.content.toLowerCase() === `${config.prefix}leavechat` || m.content.toLowerCase() === `${client.db.settings.get(interaction.guildId).prefix}leavechat`) {
+                    removeUser(m.author, interaction);
 
                     // End the chat if there's no one left
-                    if (chatters[msg.channel.id].length < 1) {
+                    if (chatters[interaction.channelId].length < 1) {
                         return collector.stop();
                     }
 
@@ -77,7 +80,7 @@ module.exports = {
                 log.push(m.content);
 
                 // Start typing to make the bot seem more humanlike
-                msg.channel.sendTyping();
+                interaction.channel.sendTyping();
 
                 // Clever the bot
                 cleverbot(m.content, log.slice(0, -1)).then(response => {
@@ -87,9 +90,9 @@ module.exports = {
                     const responseEmb = new Discord.MessageEmbed()
                         .setColor(config.embedColor)
                         .setDescription(response)
-                        .setFooter(`${config.name} | Use "${client.db.settings.get(msg.guild.id).prefix}chat" to join/leave the conversation!`, client.user.avatarURL());
+                        .setFooter(`${config.name} | Use "${config.prefix}leavechat" to leave the conversation`, client.user.avatarURL());
 
-                    return msg.channel.send({
+                    return interaction.channel.send({
                         embeds: [responseEmb]
                     });
                 });
@@ -97,23 +100,23 @@ module.exports = {
 
             // End the chat once time expires
             collector.on("end", () => {
-                return endChat();
+                return endChat(interaction);
             });
         }
 
-        function removeUser(user) {
+        function removeUser(user, interaction) {
             // Remove the user from the array
-            chatters[msg.channel.id].splice(chatters[msg.channel.id].indexOf(chatters[msg.channel.id].find(u => u === user.id)), 1);
+            chatters[interaction.channelId].splice(chatters[interaction.channelId].indexOf(chatters[interaction.channelId].find(u => u === user.id)), 1);
 
             const leaveEmb = new Discord.MessageEmbed()
                 .setColor(config.embedColor)
-                .setAuthor(msg.guild.members.cache.get(user.id).displayName, user.avatarURL())
+                .setAuthor(interaction.member.guild.members.cache.get(user.id).displayName, user.avatarURL())
                 .setTitle("You left the conversation!")
                 .setFooter(config.name, client.user.avatarURL());
 
             // Only send the message if there's another chatter. This is to avoid spam in the channel
-            if (chatters[msg.channel.id].length > 0) {
-                return msg.channel.send({
+            if (chatters[interaction.channelId].length > 0) {
+                return interaction.channel.send({
                     embeds: [leaveEmb]
                 });
             }
@@ -121,19 +124,19 @@ module.exports = {
             return;
         }
 
-        function endChat() {
+        function endChat(interaction) {
             // Remove the channel from the array
-            isChatting.splice(isChatting.findIndex(g => g === msg.channel.id), 1);
+            isChatting.splice(isChatting.findIndex(g => g === interaction.channelId), 1);
 
             // Reset the list of chatters
-            chatters[msg.channel.id] = [];
+            chatters[interaction.channelId] = [];
 
             const endEmb = new Discord.MessageEmbed()
                 .setColor(config.embedColor)
                 .setTitle("The chat has ended. Thanks for the great conversation!")
                 .setFooter(config.name, client.user.avatarURL());
 
-            return msg.channel.send({
+            return interaction.channel.send({
                 embeds: [endEmb]
             });
         }
