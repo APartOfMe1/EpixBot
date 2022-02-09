@@ -103,7 +103,7 @@ module.exports = {
                 await interaction.reply(`Are you sure you want to restore the backup? This will delete **ALL** data on the server and replace it with the data in the backup. This includes messages, channels, roles, bans, server settings, emojis, etc \n\nIf you're sure you want to restore the backup, type **${code}** within 45 seconds`);
 
                 // Make sure the message comes from the author and includes the code we generated earlier
-                const filter = m => m.content;
+                const filter = m => m.content === code && m.author.id === interaction.user.id;
 
                 interaction.channel.awaitMessages({
                     filter,
