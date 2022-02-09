@@ -14,106 +14,124 @@ module.exports = {
     cooldown: 5000,
     usage: '`{prefix}backup create` or `{prefix}backup restore <id>`',
     examples: '`{prefix}backup restore 730448128594587340`',
-    async execute(msg, args) {
-        if (!msg.member.permissions.has(Discord.Permissions.ADMINISTRATOR)) {
-            return msg.channel.send("You need admin permissions to create or restore server backups");
+    slashOptions: new client.slashCommand()
+        .addSubcommand(o => {
+            return o.setName('create')
+                .setDescription('Create a server backup');
+        })
+        .addSubcommand(o => {
+            return o.setName('info')
+                .setDescription('Information for server backups');
+        })
+        .addSubcommand(o => {
+            return o.setName('restore')
+                .setDescription('Restore a server backup')
+                .addStringOption(o => {
+                    return o.setName('id')
+                        .setDescription('The ID of the backup to restore')
+                        .setRequired(true);
+                });
+        }),
+    async execute(interaction) {
+        if (!interaction.member.permissions.has(Discord.Permissions.ADMINISTRATOR)) {
+            return interaction.reply("You need admin permissions to create or restore server backups");
         }
 
-        if (!msg.guild.me.permissions.has(Discord.Permissions.ADMINISTRATOR)) {
-            return msg.channel.send("I need admin permissions to create/restore backups!");
+        if (!interaction.member.guild.me.permissions.has(Discord.Permissions.ADMINISTRATOR)) {
+            return interaction.reply("I need admin permissions to create/restore backups!");
         }
 
         // Set the message count to restore per channel
         var maxMsgCount = 50;
 
-        if (args[0]) {
-            if (args[0].toLowerCase() === "create") {
+        switch (interaction.options.getSubcommand()) {
+            case 'create':
                 // Check if the guild is on a cooldown
-                if (!cooldown.has(msg.guild.id)) {
+                if (!cooldown.has(interaction.guildId)) {
                     // Add the guild to the cooldown
-                    cooldown.add(msg.guild.id);
-                
+                    cooldown.add(interaction.guildId);
+
                     // Delete the guild from the cooldown after 24 hours.
                     // This is done separately from normal cooldowns since 12 hours is a long time, and normally cooldown times are displayed as seconds
-                    setTimeout(() => { 
-                        cooldown.delete(msg.guild.id);
+                    setTimeout(() => {
+                        cooldown.delete(interaction.guildId);
                     }, 86400000);
 
-                    var waitingMsg = await msg.channel.send(`${emojis.loading} Creating backup... This may take a few minutes`);
+                    await interaction.reply(`${emojis.loading} Creating backup... This may take a few minutes`);
 
                     // Create the backup
-                    backup.create(msg.guild, {
+                    backup.create(interaction.member.guild, {
                         jsonSave: true,
                         jsonBeautify: false,
                         maxMessagesPerChannel: maxMsgCount,
                         saveImages: "base64"
                     }).then((backupData) => {
                         // Send a success message to the author
-                        msg.author.send({
-                            content: `The backup for **${msg.guild}** was successfully created! To restore it, you'll need to run \`${config.prefix}backup restore ${backupData.id}\`\n\nYour backup id: **${backupData.id}**\n\nThe backup file is included below. It's recommended to store this file somewhere safe in case the remote copy ever gets deleted. You can also share this file with others to let them have a copy of the server.`,
+                        interaction.user.send({
+                            content: `The backup for **${interaction.member.guild.name}** was successfully created! To restore it, you'll need to run \`/backup restore ${backupData.id}\`\n\nYour backup id: **${backupData.id}**\n\nThe backup file is included below. It's recommended to store this file somewhere safe in case the remote copy ever gets deleted. You can also share this file with others to let them have a copy of the server.`,
                             files: [
                                 path.resolve(`./assets/backups/${backupData.id}.json`)
                             ]
                         });
 
-                        waitingMsg.edit(`:white_check_mark: The backup was successfully created and the details were sent to **${msg.guild.members.cache.get(msg.author.id).displayName}**`);
+                        interaction.editReply(`:white_check_mark: The backup was successfully created and the details were sent to **${interaction.member.nickname || interaction.user.username}**`);
                     });
 
                     return;
                 } else {
                     // If the guild is on a cooldown
-                    return msg.channel.send(`Please wait 24 hours in between backups`);
+                    return interaction.reply(`Please wait 24 hours in between backups`);
                 }
-            } else if (args[0].toLowerCase() === "restore") {
-                // Make sure an id is given
-                if (!args[1]) {
-                    return msg.channel.send("You need to specify a backup ID!");
-                }
+
+            case 'info':
+                const failEmb = new Discord.MessageEmbed()
+                    .setTitle("Server Backups")
+                    .setColor(config.embedColor)
+                    .setDescription(`Use \`/backup create\` to create a backup, and \`/backup restore <id>\` to restore a backup`)
+                    .addField("What Happens When a Backup is Restored?", `When restoring a backup, all server data will be wiped and replaced by the data in the backup. This includes messages, settings, channels, roles, pins, etc. Only the last ${maxMsgCount} messages in each channel are backed up. If there's anything you want to save, be sure to create a fresh backup before restoring`);
+
+                return interaction.reply({
+                    embeds: [failEmb]
+                });
+
+            case 'restore':
+                const id = interaction.options.getString('id');
 
                 // Generate a random four digit code
                 var code = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
 
-                msg.channel.send(`Are you sure you want to restore the backup? This will delete **ALL** data on the server and replace it with the data in the backup. This includes messages, channels, roles, bans, server settings, emojis, etc \n\nIf you're sure you want to restore the backup, type **${code}** within 45 seconds`);
+                await interaction.reply(`Are you sure you want to restore the backup? This will delete **ALL** data on the server and replace it with the data in the backup. This includes messages, channels, roles, bans, server settings, emojis, etc \n\nIf you're sure you want to restore the backup, type **${code}** within 45 seconds`);
 
                 // Make sure the message comes from the author and includes the code we generated earlier
-                const filter = m => m.author.id === msg.author.id && m.content === code;
+                const filter = m => m.content;
 
-                msg.channel.awaitMessages(filter, {
+                interaction.channel.awaitMessages({
+                    filter,
                     max: 1,
                     time: 45000,
                     errors: ['time']
                 }).then(async collected => {
-                    const restoreMsg = await msg.author.send(`${emojis.loading} Restoring the backup... This can take up to a few hours. Please don't touch anything during the restore, as that can mess things up and cause your restore to fail.`);
-
+                    await interaction.editReply(`${emojis.loading} Restoring the backup... This can take up to a few hours. Please don't touch anything during the restore, as that can mess things up and cause your restore to fail.`);
+                    
                     // Load the backup
-                    backup.load(args[1], msg.guild, {
+                    backup.load(id, interaction.member.guild, {
                         clearGuildBeforeRestore: true,
                         maxMessagesPerChannel: maxMsgCount
                     }).then(() => {
-                        // Delete the message and send a new one to send a notification to the author
-                        restoreMsg.delete();
-
-                        msg.author.send("✅ Done! Go check out your newly-restored server!");
+                        interaction.editReply("✅ Done! Go check out your newly-restored server!").catch(e => {
+                            interaction.channel.send("✅ Done! Go check out your newly-restored server!");
+                        });
                     }).catch(e => {
                         // If there was an error, assume the code was wrong
-                        return msg.channel.send("That isn't a valid backup ID!");
+                        return interaction.reply("That isn't a valid backup ID!").catch(e => {
+                            // console.log(e);
+                        });
                     });
                 }).catch(e => {
-                    return msg.channel.send("No answer was given, so the restore was cancelled");
+                    return interaction.editReply("No answer was given, so the restore was cancelled");
                 });
 
-                return;
-            }
+                break;
         }
-
-        const failEmb = new Discord.MessageEmbed()
-            .setTitle("Server Backups")
-            .setColor(config.embedColor)
-            .setDescription(`Use \`${config.prefix}backup create\` to create a backup, and \`${config.prefix}backup restore <id>\` to restore a backup`)
-            .addField("What Happens When a Backup is Restored?", `When restoring a backup, all server data will be wiped and replaced by the data in the backup. This includes messages, settings, channels, roles, pins, etc. Only the last ${maxMsgCount} messages in each channel are backed up. If there's anything you want to save, be sure to create a fresh backup before restoring`);
-
-        return msg.channel.send({
-            embeds: [failEmb]
-        });
     },
 };
