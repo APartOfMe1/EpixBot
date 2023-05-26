@@ -10,7 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "@discordjs/opus": "^0.5.3",
-    "@discordjs/rest": "^0.3.0",
     "@discordjs/voice": "^0.6.0",
     "aki-api": "^5.2.1",
     "axios": "^0.21.1",
@@ -23,10 +22,9 @@
     "chalk": "^4.1.0",
     "check-disk-space": "^2.1.0",
     "cleverbot-free": "^1.1.6",
-    "discord-api-types": "^0.26.1",
     "discord-backup": "^3.0.1",
     "discord-ytdl-core": "^5.0.4",
-    "discord.js": "^13.2.0",
+    "discord.js": "^14.11.0",
     "download": "^8.0.0",
     "electron": "^11.2.3",
     "emoji-regex": "^9.2.2",
@@ -47,10 +45,10 @@
     "rebuild": "^0.1.2",
     "require-all": "^3.0.0",
     "system-commands": "^1.1.7",
-    "ytdl-core": "^4.9.1",
+    "ytdl-core": "^4.11.4",
     "ytdl-core-discord": "^1.2.5",
     "ytpl": "^2.0.5",
-    "ytsr": "^3.3.1",
+    "ytsr": "^3.8.2",
     "zip-dir": "^2.0.0"
   }
 }
