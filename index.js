@@ -1,3 +1,3 @@
 module.exports = {
-    Main: require("./handlers/Main/main.js")
+    Main: require("./core/main.js")
 }; 

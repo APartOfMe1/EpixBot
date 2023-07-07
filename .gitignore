@@ -109,8 +109,7 @@ dist
 # Sensitive data files
 config/config.json
 data/*
-handlers/Backup/Backups/*
-handlers/Main/Error-Logs/*
+logs/*
 
 # Useless downloads
 *.mid
