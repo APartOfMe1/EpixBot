@@ -12,7 +12,7 @@ class Users extends client.Model {
 
         // Create user entry if it doesn't exist
         if (!user) {
-            user = await Users.query().insert({
+            user = await this.query().insert({
                 user_id: userId,
                 credits: 0,
                 blacklisted: 0

@@ -1,3 +1,5 @@
+const config = require('../config/config.json');
+const chalk = require("chalk");
 const Discord = require('discord.js');
 global.client = new Discord.Client({intents: [
     Discord.GatewayIntentBits.Guilds,
@@ -9,14 +11,15 @@ global.client = new Discord.Client({intents: [
     Discord.GatewayIntentBits.GuildVoiceStates,
     Discord.GatewayIntentBits.MessageContent,
 ]});
-const config = require('../config/config.json');
-const chalk = require("chalk");
-const cmdhandler = require('./command-handler.js');
-const database = require('./database/database.js');
 
-// Initialize database
+// Initialize database before the other files
+var cmdhandler, leveling;
+const database = require('./database/database.js');
 database.init().then(res => {
     client.db = res;
+
+    cmdhandler = require('./command-handler.js');
+    leveling = require('./leveling.js');
 });
 
 client.once(Discord.Events.ClientReady, (user) => {
@@ -61,6 +64,8 @@ client.on(Discord.Events.MessageCreate, async msg => {
     if (!msg.guild.available) {
         return;
     };
+
+    leveling(msg);
 
     return cmdhandler.handleCommandMsg(msg);
 });

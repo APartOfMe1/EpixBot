@@ -4,7 +4,16 @@ const Knex = require('knex');
 const { Model } = require('objection');
 const knex = Knex(config.dbConnection);
 Model.knex(knex);
-client.Model = Model;
+
+// The base model everything else will extend
+class BaseModel extends Model {
+    async save() {
+        await this.$query().patch(this);
+
+        return this;
+    }
+}
+client.Model = BaseModel;
 
 // Require all models
 module.exports = {
