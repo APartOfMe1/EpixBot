@@ -1,8 +1,4 @@
-const config = require('../config/config.json');
-const chalk = require("chalk");
 const Discord = require('discord.js');
-const cmdhandler = require('./command-handler.js');
-
 global.client = new Discord.Client({intents: [
     Discord.GatewayIntentBits.Guilds,
     Discord.GatewayIntentBits.GuildMembers,
@@ -13,6 +9,15 @@ global.client = new Discord.Client({intents: [
     Discord.GatewayIntentBits.GuildVoiceStates,
     Discord.GatewayIntentBits.MessageContent,
 ]});
+const config = require('../config/config.json');
+const chalk = require("chalk");
+const cmdhandler = require('./command-handler.js');
+const database = require('./database/database.js');
+
+// Initialize database
+database.init().then(res => {
+    client.db = res;
+});
 
 client.once(Discord.Events.ClientReady, (user) => {
     cmdhandler.addCommandsByPath('./commands').then(() => {
@@ -43,7 +48,7 @@ client.once(Discord.Events.ClientReady, (user) => {
     });
 });
 
-client.on(Discord.Events.MessageCreate, msg => {
+client.on(Discord.Events.MessageCreate, async msg => {
     if (msg.author.bot) {
         return;
     }
