@@ -14,7 +14,7 @@ global.client = new Discord.Client({intents: [
 
 // Initialize database before the other files
 var cmdhandler, leveling;
-const database = require('./database/database.js');
+const database = require('./database.js');
 database.init().then(res => {
     client.db = res;
 
@@ -49,6 +49,23 @@ client.once(Discord.Events.ClientReady, (user) => {
 
         console.log(chalk.keyword('green')(`I'm up and running!`));
     });
+
+    // Delete downloaded files to save space
+    const dirArr = [
+        path.resolve("./assets/downloads/mp3"),
+        path.resolve("./assets/downloads/midi"),
+        path.resolve("./assets/downloads/midi/conversions")
+    ];
+
+    for (const dir of dirArr) {
+        fs.readdir(dir, (err, files) => {
+            for (const file of files) {
+                if (file.endsWith(".mid") || file.endsWith(".mp3")) {
+                    fs.unlink(path.join(dir, file), function (err) {});
+                };
+            };
+        });
+    };
 });
 
 client.on(Discord.Events.MessageCreate, async msg => {
