@@ -11,16 +11,23 @@ const Song = require('./song.js');
 const queues = {};
 
 module.exports = {
-    async play(song, interaction) {
+    // Get the full queue for a guild
+    getQueue(guildId) {
+        if (!queues[guildId]) {
+            return Promise.reject('No songs are currently playing');
+        };
+
+        return Promise.resolve(queues[guildId]);
+    },
+
+    // Add a song to the queue
+    async play(song, interaction, addToTop) {
         // Create new queue if needed
         if (!queues[interaction.member.guild.id]) {
             queues[interaction.member.guild.id] = new Queue(interaction);
         }
 
         const queue = queues[interaction.member.guild.id];
-
-        // Is there already something in the queue?
-        const curPlaying = queue.getQueueLength() > 0;
 
         var formattedResult;
 
@@ -35,7 +42,7 @@ module.exports = {
             for (const video of playlist.items) {
                 let formatted = new Song(video, interaction.user.username, 'playlist');
 
-                queue.addToQueue(formatted);
+                queue.addToQueue(formatted, addToTop);
             }
 
             let embed = new Discord.EmbedBuilder()
@@ -51,7 +58,7 @@ module.exports = {
                     { name: 'Updated', value: playlist.lastUpdated, inline: true }
                 );
 
-            if (!curPlaying) {
+            if (!queue.currentlyPlaying()) {
                 playSong(queue);
             }
 
@@ -65,7 +72,7 @@ module.exports = {
 
             formattedResult = new Song(video, interaction.user.username, 'url');
 
-            queue.addToQueue(formattedResult);
+            queue.addToQueue(formattedResult, addToTop);
         } else {
             // Input isn't a valid URL. Search by title
             let search = await ytsr(song, { limit: 1 });
@@ -76,7 +83,7 @@ module.exports = {
 
             formattedResult = new Song(search.items[0], interaction.user.username, 'search');
 
-            queue.addToQueue(formattedResult);
+            queue.addToQueue(formattedResult, addToTop);
         }
 
         let embed = new Discord.EmbedBuilder()
@@ -92,7 +99,7 @@ module.exports = {
                 { name: 'Uploaded', value: formattedResult.uploadedAt, inline: true }
             );
 
-        if (!curPlaying) {
+        if (!queue.currentlyPlaying()) {
             playSong(queue);
         }
 
@@ -100,6 +107,7 @@ module.exports = {
     }
 }
 
+// Play the first song in a queue
 async function playSong(queue) {
     let connection = dVoice.getVoiceConnection(queue.guildId);
 
@@ -142,7 +150,7 @@ async function playSong(queue) {
         .addFields(
             { name: 'Length', value: timeFormat.msToHms(song.durationMs), inline: true },
             { name: 'Channel', value: song.channel, inline: true },
-            { name: 'Views', value: song.views.toString(), inline: true },
+            { name: 'Views', value: song.views, inline: true },
             { name: 'Uploaded', value: song.uploadedAt, inline: true },
             { name: 'Requested By', value: song.requestedBy, inline: true },
         );
@@ -160,13 +168,21 @@ async function playSong(queue) {
 
     // The song is over
     player.on(dVoice.AudioPlayerStatus.Idle, () => {
-        queue.removeFirstSong();
+        if (!queue.repeatMode) {
+            queue.removeFirstSong();
+        }
 
         // Do we want to play the next song?
         if (queue.getQueueLength() > 0) {
             playSong(queue);
         } else {
             client.channels.cache.get(queue.msgChannelId).send('I finished playing the current queue!');
+
+            // BURN THE WITCH
+            player.stop();
+            let guildId = queue.guildId;
+            delete queue;
+            delete queues[guildId];
         }
     });
 }

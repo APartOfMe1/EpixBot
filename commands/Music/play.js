@@ -34,16 +34,11 @@ module.exports = {
             return interaction.editReply('I can\'t speak in this channel! Do I have the correct permissions?');
         }
 
-        if (!perms.has('VIEW_CHANNEL')) {
-            return interaction.editReply('I can\'t view this channel! Do I have the correct permissions?');
-        }
-
         return player.play(song, interaction).then(res => {
             interaction.editReply({
                 embeds: [res]
             });
         }).catch(e => {
-            console.log(e)
             interaction.editReply(e);
         });
     },

@@ -42,4 +42,27 @@ module.exports = {
             return +time[0] * 1000;
         };
     },
+
+    // Verify that a string is a valid hh:mm:ss timestamp
+    verifyTime(t) {
+        if (!t.includes(":")) {
+            // Check if our time is under a minute
+            if (parseInt(t) && parseInt(t) < 60 && parseInt(t) > 0) {
+                return true;
+            } else {
+                return false;
+            };
+        };
+
+        const st = t.split(":");
+
+        // Verify that each segment is a valid time
+        for (const segment of st) {
+            if (!parseInt(segment) && segment !== "00" || parseInt(segment) > 59) {
+                return false;
+            };
+        };
+
+        return true;
+    },
 }
