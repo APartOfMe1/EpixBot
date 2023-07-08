@@ -1,5 +1,7 @@
 const config = require('../config/config.json');
-const chalk = require("chalk");
+const chalk = require('chalk');
+const path = require('path');
+const fs = require('fs');
 const Discord = require('discord.js');
 global.client = new Discord.Client({intents: [
     Discord.GatewayIntentBits.Guilds,
@@ -13,13 +15,14 @@ global.client = new Discord.Client({intents: [
 ]});
 
 // Initialize database before the other files
-var cmdhandler, leveling;
+var cmdhandler, leveling, logging;
 const database = require('./database.js');
 database.init().then(res => {
     client.db = res;
 
     cmdhandler = require('./command-handler.js');
     leveling = require('./leveling.js');
+    logging = require('./logging.js');
 });
 
 client.once(Discord.Events.ClientReady, (user) => {
@@ -85,6 +88,47 @@ client.on(Discord.Events.MessageCreate, async msg => {
     leveling(msg);
 
     return cmdhandler.handleCommandMsg(msg);
+});
+
+client.on(Discord.Events.MessageDelete, delmsg => {
+    return logging.deleted(delmsg);
+});
+
+client.on(Discord.Events.MessageUpdate, (oldmsg, newmsg) => {
+    // Fix issue with URL embeds triggering an edit
+    if (oldmsg.content === newmsg.content) {
+        return;
+    };
+
+    cmdhandler.handleCommandMsg(newmsg);
+
+    return logging.edited(oldmsg, newmsg);
+});
+
+client.on("guildMemberRemove", oldmember => {
+    // Channel types: https://discord.com/developers/docs/resources/channel#channel-object-channel-types
+    oldmember.guild.channels.cache.forEach(channel => { // Get each channel
+        if (channel.type === 0 && channel.topic) { // Check if it's a text channel and has a set topic
+            if (channel.topic.toLowerCase().includes("+>leave<+") || channel.topic.toLowerCase().includes("+>welcomeleave<+")) { // Make sure the topic includes one of the phrases
+                channel.send(`${oldmember.user.tag} just left the server...`);
+            };
+        };
+    });
+
+    return logging.memberLeft(oldmember);
+});
+
+client.on("guildMemberAdd", newmember => {
+    // Channel types: https://discord.com/developers/docs/resources/channel#channel-object-channel-types
+    newmember.guild.channels.cache.forEach(channel => { // Get each channel
+        if (channel.type === 0 && channel.topic) { // check if it's a text channel and has a set topic
+            if (channel.topic.toLowerCase().includes("+>welcome<+") || channel.topic.toLowerCase().includes("+>welcomeleave<+")) { // Check if the topic includes one of the phrases
+                channel.send(`Welcome ${newmember} to ${newmember.guild}! You are user number **${newmember.guild.members.cache.size}**`);
+            };
+        };
+    });
+
+    return logging.memberJoined(newmember);
 });
 
 
