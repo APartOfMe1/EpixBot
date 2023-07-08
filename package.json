@@ -9,11 +9,13 @@
   "author": "APartOfMe",
   "license": "ISC",
   "dependencies": {
+    "@discordjs/opus": "^0.9.0",
     "@discordjs/voice": "^0.16.0",
     "bufferutil": "^4.0.7",
     "chalk": "^4.1.2",
     "discord.js": "^14.11.0",
     "fs": "^0.0.1-security",
+    "genius-lyrics": "^4.4.3",
     "klaw": "^4.1.0",
     "knex": "^2.4.2",
     "libsodium-wrappers": "^0.7.11",

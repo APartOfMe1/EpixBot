@@ -7,6 +7,7 @@ Model.knex(knex);
 
 // The base model everything else will extend
 class BaseModel extends Model {
+    // Save any changes made to the model
     async save() {
         await this.$query().patch(this);
 

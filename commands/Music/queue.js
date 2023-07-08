@@ -46,7 +46,7 @@ module.exports = {
             const embed = new Discord.EmbedBuilder()
                 .setTitle(`Queue for ${interaction.member.guild}`)
                 .setColor(config.embedColor)
-                .setFooter({text: `${config.name} | Only the first 10 items are shown | Total queue size: ${songs.length} | Total queue length: ${timeFormat.msToHms(queue.totalTimeMs)}`})
+                .setFooter({text: `${config.name} | Only the first 10 items are shown | Total queue size: ${songs.length} | Total queue length: ${queue.getQueueTime(true)}`})
                 .addFields({ name: 'Now Playing:', value: `${nowPlaying.title} | ${timeFormat.msToHms(nowPlaying.durationMs)}` });
 
             // Add a field if there's more than one song in the queue

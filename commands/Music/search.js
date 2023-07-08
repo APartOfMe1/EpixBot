@@ -79,6 +79,7 @@ module.exports = {
             let response = await reply.awaitMessageComponent({ filter: filter, time: 30000 });
             let index = parseInt(response.values[0]);
 
+            // Add the song to the queue
             return player.play(results.items[index].url, interaction).then(res => {
                 interaction.editReply({
                     embeds: [res],

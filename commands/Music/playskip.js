@@ -1,18 +1,18 @@
 const player = require('../../handlers/music/music.js');
-const dVoice = require('@discordjs/voice');
 
 module.exports = {
-    name: 'play',
-    description: 'Play music',
+    name: 'playskip',
+    description: 'Immediately play a song',
     category: 'Music',
     cooldown: 2500,
-    usage: '`/play <song>`',
-    example: '`/play never gonna give you up`',
+    usage: '`/playskip <song>`',
+    example: '`/playskip never gonna give you up`',
     slashOptions: new client.slashCommand()
         .addStringOption(option => {
             return option
                 .setName('song')
-                .setDescription('The title or YouTube link of the song to play');
+                .setDescription('The title or YouTube link of the song to play')
+                .setRequired(true);
         }),
     async execute(interaction) {
         // Ensure we don't time out while loading the song
@@ -25,20 +25,6 @@ module.exports = {
         let perms = interaction.member.voice.channel.permissionsFor(client.user);
         let song = interaction.options.getString('song');
 
-        if (!song) {
-            return player.getQueue(interaction.member.guild.id).then(queue => {
-                if (queue.currentlyPaused()) {
-                    queue.togglePause();
-
-                    return interaction.editReply('Resuming');
-                } else {
-                    interaction.editReply('You need to give me a song to play!');
-                }
-            }).catch(e => {
-                interaction.editReply('You need to give me a song to play!');
-            });
-        }
-
         if (!perms.has('CONNECT')) {
             return interaction.editReply('I can\'t connect to this voice channel. Do I have the correct permissions?');
         }
@@ -47,7 +33,7 @@ module.exports = {
             return interaction.editReply('I can\'t speak in this channel! Do I have the correct permissions?');
         }
 
-        return player.play(song, interaction).then(res => {
+        return player.play(song, interaction, true).then(res => {
             interaction.editReply({
                 embeds: [res]
             });

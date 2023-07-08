@@ -10,6 +10,7 @@ module.exports = class Song {
     uploadedAt;
     requestedBy;
 
+    // This isn't the best solution, but it works so idrc
     constructor(song, requestor, type) {
         if (type == 'search') {
             this.url = song.url;
@@ -39,5 +40,19 @@ module.exports = class Song {
             this.uploadedAt = 'Unknown'; // Doesn't provide upload
             this.requestedBy = requestor ?? 'Unknown';
         }
+    }
+
+    // Format duration as hh:mm:ss
+    durationHms() {
+        return timeFormat.msToHms(this.durationMs);
+    }
+
+    // Add commas to view count
+    formatViews() {
+        if (this.views !== 'Unknown') {
+            return parseInt(this.views).toLocaleString();
+        }
+
+        return this.views;
     }
 }

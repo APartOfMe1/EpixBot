@@ -5,7 +5,6 @@ const playdl = require('play-dl');
 const Discord = require('discord.js');
 const dVoice = require('@discordjs/voice');
 const config = require('../../config/config.json');
-const timeFormat = require('../../utilities/timeFormat.js');
 const Queue = require('./queue.js');
 const Song = require('./song.js');
 const queues = {};
@@ -15,7 +14,7 @@ module.exports = {
     getQueue(guildId) {
         if (!queues[guildId]) {
             return Promise.reject('No songs are currently playing');
-        };
+        }
 
         return Promise.resolve(queues[guildId]);
     },
@@ -45,6 +44,14 @@ module.exports = {
                 queue.addToQueue(formatted, addToTop);
             }
 
+            if (!queue.currentlyPlaying()) {
+                playSong(queue);
+            }
+
+            if (addToTop) {
+                queue.skip();
+            }
+
             let embed = new Discord.EmbedBuilder()
                 .setColor(config.embedColor)
                 .setAuthor({ name: `Added ${playlist.estimatedItemCount} items to Queue` })
@@ -57,10 +64,6 @@ module.exports = {
                     { name: 'Views', value: playlist.views.toString(), inline: true },
                     { name: 'Updated', value: playlist.lastUpdated, inline: true }
                 );
-
-            if (!queue.currentlyPlaying()) {
-                playSong(queue);
-            }
 
             return Promise.resolve(embed);
         } else if (ytdl.validateURL(song) || ytdl.validateID(song)) { // Input is a YT URL
@@ -75,13 +78,16 @@ module.exports = {
             queue.addToQueue(formattedResult, addToTop);
         } else {
             // Input isn't a valid URL. Search by title
-            let search = await ytsr(song, { limit: 1 });
+            let search = await ytsr(song, { limit: 10 });
 
-            if (!search.items.length || !search.items[0].url) {
+            // Make sure we have a video and not a channel/short/etc
+            let result = search.items.filter((e) => e.type == 'video');
+
+            if (!result.length || !result[0].url) {
                 return Promise.reject('No results found');
             }
 
-            formattedResult = new Song(search.items[0], interaction.user.username, 'search');
+            formattedResult = new Song(result[0], interaction.user.username, 'search');
 
             queue.addToQueue(formattedResult, addToTop);
         }
@@ -93,14 +99,18 @@ module.exports = {
             .setURL(formattedResult.url)
             .setThumbnail(formattedResult.thumbnailUrl)
             .addFields(
-                { name: 'Length', value: timeFormat.msToHms(formattedResult.durationMs), inline: true },
+                { name: 'Length', value: formattedResult.durationHms(), inline: true },
                 { name: 'Channel', value: formattedResult.channel, inline: true },
-                { name: 'Views', value: formattedResult.views.toString(), inline: true },
+                { name: 'Views', value: formattedResult.formatViews(), inline: true },
                 { name: 'Uploaded', value: formattedResult.uploadedAt, inline: true }
             );
 
         if (!queue.currentlyPlaying()) {
             playSong(queue);
+        }
+
+        if (addToTop) {
+            queue.skip();
         }
 
         return Promise.resolve(embed);
@@ -116,13 +126,13 @@ async function playSong(queue) {
         connection = dVoice.joinVoiceChannel({
             channelId: queue.voiceChannelId,
             guildId: queue.guildId,
-            adapterCreator: queue.guild.voiceAdapterCreator,
+            adapterCreator: queue.getVoiceAdapterCreator(),
         });
     }
 
     const song = queue.getFirstSong();
 
-    const stream = await playdl.stream(song.url);
+    const stream = await playdl.stream(song.url, { seek: queue.getSeekTime() });
 
     const player = dVoice.createAudioPlayer({
         behaviors: {
@@ -133,10 +143,14 @@ async function playSong(queue) {
     queue.setPlayer(player);
 
     const resource = dVoice.createAudioResource(stream.stream, {
-        inputType: stream.type
+        inputType: stream.type,
+        inlineVolume: true
     });
 
     player.play(resource);
+
+    // Preserve volume between songs
+    queue.setVolume(queue.getVolume());
 
     connection.subscribe(player);
 
@@ -148,9 +162,9 @@ async function playSong(queue) {
         .setURL(song.url)
         .setThumbnail(song.thumbnailUrl)
         .addFields(
-            { name: 'Length', value: timeFormat.msToHms(song.durationMs), inline: true },
+            { name: 'Length', value: song.durationHms(), inline: true },
             { name: 'Channel', value: song.channel, inline: true },
-            { name: 'Views', value: song.views, inline: true },
+            { name: 'Views', value: song.formatViews(), inline: true },
             { name: 'Uploaded', value: song.uploadedAt, inline: true },
             { name: 'Requested By', value: song.requestedBy, inline: true },
         );
@@ -168,7 +182,7 @@ async function playSong(queue) {
 
     // The song is over
     player.on(dVoice.AudioPlayerStatus.Idle, () => {
-        if (!queue.repeatMode) {
+        if (!queue.getRepeatModeState()) {
             queue.removeFirstSong();
         }
 
@@ -183,6 +197,21 @@ async function playSong(queue) {
             let guildId = queue.guildId;
             delete queue;
             delete queues[guildId];
+            try { connection.destroy(); } catch { }
+        }
+    });
+
+    // Handle disconnects
+    connection.on(dVoice.VoiceConnectionStatus.Disconnected, async () => {
+        try {
+            // Reconnecting
+            await Promise.race([
+                dVoice.entersState(connection, dVoice.VoiceConnectionStatus.Signalling, 5000),
+                dVoice.entersState(connection, dVoice.VoiceConnectionStatus.Connecting, 5000),
+            ]);
+        } catch (error) {
+            // Kill the connection
+            try { connection.destroy(); } catch { }
         }
     });
 }
