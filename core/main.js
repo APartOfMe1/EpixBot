@@ -13,6 +13,7 @@ global.client = new Discord.Client({intents: [
     Discord.GatewayIntentBits.GuildVoiceStates,
     Discord.GatewayIntentBits.MessageContent,
 ]});
+client.slashCommand = Discord.SlashCommandBuilder;
 
 // Initialize database before the other files
 var cmdhandler, leveling, logging;
@@ -88,6 +89,15 @@ client.on(Discord.Events.MessageCreate, async msg => {
     leveling(msg);
 
     return cmdhandler.handleCommandMsg(msg);
+});
+
+client.on(Discord.Events.InteractionCreate, interaction => {
+    // Only respond to commands
+    if (!interaction.isChatInputCommand()) {
+        return;
+    }
+    
+    return cmdhandler.handleInteraction(interaction);
 });
 
 client.on(Discord.Events.MessageDelete, delmsg => {

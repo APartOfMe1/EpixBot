@@ -3,6 +3,7 @@ const klaw = require('klaw');
 const Discord = require('discord.js');
 const fs = require('fs');
 const cmdCooldown = new Set();
+const rest = new Discord.REST().setToken(config.token);
 
 module.exports = {
     addCommandsByPath(filepath) {
@@ -10,6 +11,8 @@ module.exports = {
             // Create command/category collections if they don't exist
             client.commands = client.commands ?? new Discord.Collection();
             client.categories = client.categories ?? new Discord.Collection();
+
+            const slashCommands = [];
 
             klaw(filepath).on('data', c => {
                 // We only care about js files here
@@ -21,6 +24,26 @@ module.exports = {
 
                 let commandName = c.path.replace(/^.*[\\\/]/, '').split(".js");
 
+                // Check if it's a slash command
+                if (command.slashOptions) {
+                    // Default to true
+                    if (command.slashOnly !== false) {
+                        command.slashOnly = true;
+                    }
+
+                    var slash = command.slashOptions;
+
+                    if (!slash.name) {
+                        slash.setName(commandName[0].toLowerCase());
+                    }
+
+                    if (!slash.description) {
+                        slash.setDescription(command.description);
+                    }
+
+                    slashCommands.push(slash);
+                }
+
                 // Add category to list as needed
                 if (!client.categories.get(command.category)) {
                     client.categories.set(command.category);
@@ -30,7 +53,21 @@ module.exports = {
                 if (!client.commands.get(commandName[0])) {
                     client.commands.set(commandName[0], command);
                 }
-            }).on('end', () => {
+            }).on('end', async () => {
+                if (slashCommands.length > 0) {
+                    if (config.useGuildSlashCommands) {
+                        await rest.put(
+                            Discord.Routes.applicationGuildCommands(client.user.id, config.slashCommandGuild),
+                            { body: slashCommands },
+                        );
+                    } else {
+                        await rest.put(
+                            Discord.Routes.applicationCommands(client.user.id),
+                            { body: slashCommands },
+                        );
+                    }
+                }
+
                 return resolve();
             });
         });
@@ -71,7 +108,6 @@ module.exports = {
             return;
         }
 
-        // We want slashOnly to default to false if it's not given
         if (cmd.slashOnly !== false && cmd.slashOptions) {
             return msg.channel.send(`**${cmd.name}** can only be used as a slash command! Try typing \`/${cmd.name}\``);
         }
@@ -88,10 +124,37 @@ module.exports = {
         }).catch(e => {
             return msg.channel.send(e);
         });
+    },
+
+    async handleInteraction(interaction) {
+        // Check if it's a valid command/alias
+        let cmd = client.commands.get(interaction.commandName) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(interaction.commandName));
+
+        if (!cmd) {
+            return;
+        }
+
+        // Don't allow regular users to use admin commands
+        if (cmd.category === "Administration" && !config.owners.includes(interaction.user.id) && cmd.allowAllUsers !== true) {
+            return;
+        }
+
+        disabledCooldown(cmd, interaction.user.id, interaction.member.guild.id).then(() => {
+            cmd.execute(interaction).catch(e => {
+                // Generate an error embed
+                cmdError(e, cmd, interaction.member.guild, interaction, 'interaction').then(errEmb => {
+                    return interaction.reply({
+                        embeds: [errEmb]
+                    });
+                });
+            });
+        }).catch(e => {
+            return interaction.reply(e);
+        });
     }
 }
 
-function cmdError(e, cmd, guild, msg) {
+function cmdError(e, cmd, guild, msg, type) {
     let errEmb = new Discord.EmbedBuilder()
         .setColor(config.embedColor)
         .setTitle(`There was an error running that command! The information below has been sent to the developer`)
@@ -105,7 +168,13 @@ function cmdError(e, cmd, guild, msg) {
         let d = new Date();
         let path = `./logs/log_${d.getMonth() + 1}-${d.getDate()}-${d.getFullYear()}_${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}.txt`;
 
-        fs.writeFile(path, `There was an error in ${guild.name} (${guild.id}) while running the command ${cmd.name}\nMessage author: ${msg.author.username} (${msg.author.id})\nMessage content: ${msg.content}\n\n${e.stack}`, function (e) {console.log(e)});
+        if (type && type == 'interaction') {
+            var msgText = `There was an error in ${guild.name} (${guild.id}) while running the command ${cmd.name}\nMessage author: ${msg.user.username} (${msg.user.id})\n\n${e.stack}`;
+        } else {
+            var msgText = `There was an error in ${guild.name} (${guild.id}) while running the command ${cmd.name}\nMessage author: ${msg.author.username} (${msg.author.id})\nMessage content: ${msg.content}\n\n${e.stack}`;
+        }
+
+        fs.writeFile(path, msgText, function (e) {console.log(e)});
 
         client.channels.cache.get(config.errorChannel).send(`There was an error in ${guild.name} (${guild.id}) while running the command **${cmd.name}** \n\`\`\`js\n${e}\`\`\``, {
             files: [path]
