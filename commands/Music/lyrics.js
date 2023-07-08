@@ -20,21 +20,19 @@ module.exports = {
         // Ensure we don't time out
         await interaction.deferReply();
 
-        let search = interaction.options.getString('song');
+        var search = interaction.options.getString('song');
 
         // Use the currently playing song as a search query
         if (!search) {
-            player.getQueue(interaction.member.guild.id).then(queue => {
-                if (queue.currentlyPlaying()) {
-                    let song = queue.getFirstSong();
+            let queue = await player.getQueue(interaction.member.guild.id, true);
 
-                    search = song.title;
-                } else {
-                    return interaction.editReply('You need to provide a song to search for');
-                }
-            }).catch(e => {
+            if (queue && queue.currentlyPlaying()) {
+                let song = queue.getFirstSong();
+
+                search = song.title;
+            } else {
                 return interaction.editReply('You need to provide a song to search for');
-            });
+            }
         }
 
         let results = await genius.songs.search(search);

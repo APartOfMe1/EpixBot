@@ -11,9 +11,14 @@ const queues = {};
 
 module.exports = {
     // Get the full queue for a guild
-    getQueue(guildId) {
+    getQueue(guildId, returnBool) {
         if (!queues[guildId]) {
-            return Promise.reject('No songs are currently playing');
+            if (returnBool) {
+                // We don't want to reject this because there isn't anything to catch it
+                return Promise.resolve(false);
+            } else {
+                return Promise.reject('No songs are currently playing');
+            }
         }
 
         return Promise.resolve(queues[guildId]);

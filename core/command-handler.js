@@ -143,13 +143,28 @@ module.exports = {
             cmd.execute(interaction).catch(e => {
                 // Generate an error embed
                 cmdError(e, cmd, interaction.member.guild, interaction, 'interaction').then(errEmb => {
-                    return interaction.reply({
-                        embeds: [errEmb]
-                    });
+                    // Figure out if we have already responded to the interaction in some way
+                    if (interaction.deferred || interaction.replied) {
+                        interaction.editReply({
+                            embeds: [errEmb]
+                        });
+                    } else {
+                        interaction.reply({
+                            embeds: [errEmb]
+                        });
+                    }
+
+                    return;
                 });
             });
         }).catch(e => {
-            return interaction.reply(e);
+            if (interaction.deferred || interaction.replied) {
+                interaction.editReply(e);
+            } else {
+                interaction.reply(e);
+            }
+
+            return;
         });
     }
 }
