@@ -39,7 +39,6 @@ module.exports = {
                     embeds: [editEmb]
                 });
             } catch (error) {
-                console.log(error)
                 return;
             }
         }

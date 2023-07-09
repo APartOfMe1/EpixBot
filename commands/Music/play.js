@@ -52,7 +52,6 @@ module.exports = {
                 embeds: [res]
             });
         }).catch(e => {
-            console.log(e)
             interaction.editReply(e);
         });
     },

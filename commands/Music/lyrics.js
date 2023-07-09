@@ -37,7 +37,7 @@ module.exports = {
 
         let results = await genius.songs.search(search);
 
-        if (!results.length) {
+        if (!results || !results.length) {
             return interaction.editReply('No results found');
         }
 
