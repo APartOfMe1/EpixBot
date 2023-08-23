@@ -127,3 +127,6 @@ assets/downloads/mp3/*
 
 # Other asset folders
 assets/backups/*
+
+# Vscode stuff
+.vscode/*
