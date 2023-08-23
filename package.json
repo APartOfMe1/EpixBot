@@ -23,9 +23,9 @@
     "objection": "^3.0.4",
     "play-dl": "^1.9.6",
     "utf-8-validate": "^6.0.3",
-    "ytdl-core": "^4.11.4",
+    "ytdl-core": "^4.11.5",
     "ytpl": "^2.3.0",
-    "ytsr": "^3.8.2",
+    "ytsr": "github:TimeForANinja/node-ytsr#pull/203",
     "zlib-sync": "^0.1.8"
   }
 }

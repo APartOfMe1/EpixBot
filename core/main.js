@@ -63,7 +63,7 @@ client.once(Discord.Events.ClientReady, (user) => {
 
     for (const dir of dirArr) {
         fs.readdir(dir, (err, files) => {
-            for (const file of files) {
+            for (const file of files ?? []) {
                 if (file.endsWith(".mid") || file.endsWith(".mp3")) {
                     fs.unlink(path.join(dir, file), function (err) {});
                 };
